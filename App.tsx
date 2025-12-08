@@ -19,7 +19,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
 ];
 
 // --- Constants ---
-const API_URL = 'http://127.0.0.1:8000'; // Default FastAPI port
+const API_URL = ''; // Use relative path for proxy
 const EXPENSE_COLOR = '#e11d48';
 const INCOME_COLOR = '#059669';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#e11d48', '#8884d8'];

@@ -1,0 +1,5 @@
+{
+  "name": "LocalFlow Expense Tracker",
+  "description": "A local-first, privacy-focused expense tracker with a mobile-first PWA design and powerful desktop analysis tools.",
+  "requestFramePermissions": []
+}

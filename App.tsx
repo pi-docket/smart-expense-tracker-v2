@@ -255,40 +255,44 @@ export default function App() {
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="h-80">
+        <Card className="h-80 flex flex-col">
             <h3 className="font-semibold mb-4 text-gray-700 dark:text-gray-200">Expenses by Category</h3>
-            <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                    <Pie
-                        data={categoryData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                    >
-                        {categoryData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                    </Pie>
-                    <RechartsTooltip />
-                    <Legend />
-                </PieChart>
-            </ResponsiveContainer>
+            <div className="flex-1 min-h-0">
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart margin={{ bottom: 20 }}>
+                        <Pie
+                            data={categoryData}
+                            cx="50%"
+                            cy="45%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                        >
+                            {categoryData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                        </Pie>
+                        <RechartsTooltip />
+                        <Legend />
+                    </PieChart>
+                </ResponsiveContainer>
+            </div>
         </Card>
-        <Card className="h-80 hidden md:block">
+        <Card className="h-80 hidden md:flex flex-col">
             <h3 className="font-semibold mb-4 text-gray-700 dark:text-gray-200">Weekly Trend</h3>
-            <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="date" tick={{fontSize: 12}} />
-                    <YAxis tick={{fontSize: 12}} />
-                    <RechartsTooltip />
-                    <Bar dataKey="income" fill={INCOME_COLOR} radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expense" fill={EXPENSE_COLOR} radius={[4, 4, 0, 0]} />
-                </BarChart>
-            </ResponsiveContainer>
+            <div className="flex-1 min-h-0">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyData} margin={{ bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="date" tick={{fontSize: 12}} />
+                        <YAxis tick={{fontSize: 12}} />
+                        <RechartsTooltip />
+                        <Bar dataKey="income" fill={INCOME_COLOR} radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="expense" fill={EXPENSE_COLOR} radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
         </Card>
       </div>
 
@@ -389,137 +393,34 @@ export default function App() {
         </button>
       </header>
 
+      {/* Desktop Navigation (Moved to top of main content) */}
+      <div className="hidden md:flex justify-center mb-8">
+        <div className="bg-white dark:bg-slate-800 shadow-sm border border-gray-200 dark:border-slate-700 p-1 rounded-full inline-flex">
+            <button 
+                onClick={() => setActiveTab('dashboard')}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-blue-50 text-blue-600 dark:bg-slate-700 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}`}
+            >
+                <LayoutDashboard size={18} /> Dashboard
+            </button>
+            <button 
+                onClick={() => setActiveTab('transactions')}
+                className={`px-6 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'transactions' ? 'bg-blue-50 text-blue-600 dark:bg-slate-700 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}`}
+            >
+                <List size={18} /> Transactions
+            </button>
+            <button 
+                onClick={() => setShowAddModal(true)}
+                className="ml-2 pl-4 pr-6 py-2 border-l border-gray-200 dark:border-slate-600 text-blue-600 font-medium hover:text-blue-700 flex items-center gap-2"
+            >
+                <Plus size={18} /> Add
+            </button>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 lg:p-6">
         {activeTab === 'dashboard' ? <DashboardView /> : <TransactionsView />}
       </main>
-
-      {/* Floating Action Button */}
-      <div className="fixed bottom-6 right-6 z-40 md:hidden">
-        <button 
-            onClick={() => setShowAddModal(true)}
-            className="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-400/40 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-        >
-            <Plus size={32} />
-        </button>
-      </div>
-
-      {/* Add Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300">
-                <div className="p-4 border-b dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-800">
-                    <h3 className="font-bold text-lg dark:text-white">New Transaction</h3>
-                    <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-gray-700">Close</button>
-                </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    
-                    {/* Type Toggle */}
-                    <div className="grid grid-cols-2 gap-2 bg-gray-100 dark:bg-slate-700 p-1 rounded-xl">
-                        <button 
-                            type="button" 
-                            onClick={() => setType('expense')}
-                            className={`py-2 rounded-lg font-medium text-sm transition-all ${type === 'expense' ? 'bg-white dark:bg-slate-600 shadow text-rose-600' : 'text-gray-500 dark:text-gray-400'}`}
-                        >
-                            Expense
-                        </button>
-                        <button 
-                            type="button" 
-                            onClick={() => setType('income')}
-                            className={`py-2 rounded-lg font-medium text-sm transition-all ${type === 'income' ? 'bg-white dark:bg-slate-600 shadow text-emerald-600' : 'text-gray-500 dark:text-gray-400'}`}
-                        >
-                            Income
-                        </button>
-                    </div>
-
-                    {/* Amount Input with Calculator Icon */}
-                    <div>
-                        <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Amount</label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">$</span>
-                            <input 
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="0.00"
-                                value={amountInput}
-                                onChange={(e) => setAmountInput(e.target.value)}
-                                className="w-full pl-8 pr-10 py-3 text-2xl font-bold rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                                autoFocus
-                            />
-                            <Calculator className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1">Supports math (e.g., 50+20)</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Date</label>
-                            <input 
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                className="w-full p-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Category</label>
-                            <select 
-                                value={category} 
-                                onChange={(e) => setCategory(e.target.value)}
-                                className="w-full p-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white"
-                            >
-                                <option>Food</option>
-                                <option>Transport</option>
-                                <option>Entertainment</option>
-                                <option>Salary</option>
-                                <option>Bills</option>
-                                <option>Shopping</option>
-                                <option>Health</option>
-                                <option>Other</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                         <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Note (Optional)</label>
-                         <input 
-                            type="text" 
-                            value={note}
-                            onChange={(e) => setNote(e.target.value)}
-                            placeholder="Lunch with friends..."
-                            className="w-full p-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white"
-                         />
-                    </div>
-
-                    <Button type="submit" className="w-full py-3 text-lg">
-                        Save Transaction
-                    </Button>
-                </form>
-            </div>
-        </div>
-      )}
-
-      {/* Desktop Bottom/Side Navigation alternative could go here, but using tabs for now */}
-      <div className="hidden md:flex fixed top-24 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-sm border border-gray-200 dark:border-slate-700 p-1 rounded-full z-20">
-        <button 
-            onClick={() => setActiveTab('dashboard')}
-            className={`px-6 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-blue-50 text-blue-600 dark:bg-slate-700 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}`}
-        >
-            <LayoutDashboard size={18} /> Dashboard
-        </button>
-        <button 
-            onClick={() => setActiveTab('transactions')}
-            className={`px-6 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'transactions' ? 'bg-blue-50 text-blue-600 dark:bg-slate-700 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}`}
-        >
-            <List size={18} /> Transactions
-        </button>
-        <button 
-             onClick={() => setShowAddModal(true)}
-             className="ml-2 pl-4 pr-6 py-2 border-l border-gray-200 dark:border-slate-600 text-blue-600 font-medium hover:text-blue-700 flex items-center gap-2"
-        >
-            <Plus size={18} /> Add
-        </button>
-      </div>
       
     </div>
   );

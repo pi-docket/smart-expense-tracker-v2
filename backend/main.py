@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from sqlalchemy import func, desc
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 
 import models
@@ -38,6 +39,11 @@ class Transaction(TransactionBase):
     class Config:
         from_attributes = True
 
+class YearlyStats(BaseModel):
+    highest_spending_day: Optional[Dict[str, Any]] = None
+    most_frequent_day: Optional[Dict[str, Any]] = None
+    highest_category: Optional[Dict[str, Any]] = None
+
 # Dependency
 def get_db():
     db = database.SessionLocal()
@@ -67,6 +73,64 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
     db.delete(db_transaction)
     db.commit()
     return {"ok": True}
+
+@app.get("/stats/year/{year}", response_model=YearlyStats)
+def get_yearly_stats(year: str, db: Session = Depends(get_db)):
+    year_filter = models.Transaction.date.like(f"{year}-%")
+
+    # 1. Highest Spending Day
+    highest_day_query = (
+        db.query(
+            models.Transaction.date,
+            func.sum(models.Transaction.amount).label("total_amount")
+        )
+        .filter(year_filter, models.Transaction.type == "expense")
+        .group_by(models.Transaction.date)
+        .order_by(desc("total_amount"))
+        .first()
+    )
+
+    highest_spending_day = None
+    if highest_day_query:
+        highest_spending_day = {"date": highest_day_query.date, "amount": highest_day_query.total_amount}
+
+    # 2. Most Frequent Day (Most items purchased - expenses)
+    most_freq_query = (
+        db.query(
+            models.Transaction.date,
+            func.count(models.Transaction.id).label("tx_count")
+        )
+        .filter(year_filter, models.Transaction.type == "expense")
+        .group_by(models.Transaction.date)
+        .order_by(desc("tx_count"))
+        .first()
+    )
+
+    most_frequent_day = None
+    if most_freq_query:
+        most_frequent_day = {"date": most_freq_query.date, "count": most_freq_query.tx_count}
+
+    # 3. Highest Category
+    highest_cat_query = (
+        db.query(
+            models.Transaction.category,
+            func.sum(models.Transaction.amount).label("total_amount")
+        )
+        .filter(year_filter, models.Transaction.type == "expense")
+        .group_by(models.Transaction.category)
+        .order_by(desc("total_amount"))
+        .first()
+    )
+
+    highest_category = None
+    if highest_cat_query:
+        highest_category = {"category": highest_cat_query.category, "amount": highest_cat_query.total_amount}
+
+    return YearlyStats(
+        highest_spending_day=highest_spending_day,
+        most_frequent_day=most_frequent_day,
+        highest_category=highest_category
+    )
 
 @app.get("/")
 def read_root():

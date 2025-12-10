@@ -24,3 +24,9 @@ export interface DashboardStats {
   balance: number;
   todayExpense: number;
 }
+
+export interface YearlyStats {
+  highest_spending_day: { date: string; amount: number } | null;
+  most_frequent_day: { date: string; count: number } | null;
+  highest_category: { category: string; amount: number } | null;
+}

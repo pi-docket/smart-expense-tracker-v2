@@ -6,9 +6,10 @@ import {
 import { 
   Plus, Trash2, ArrowUpCircle, ArrowDownCircle, 
   LayoutDashboard, List, Wallet, Calculator,
-  ChevronLeft, ChevronRight, Moon, Sun, Download, Calendar, X
+  ChevronLeft, ChevronRight, Moon, Sun, Download, Calendar, X,
+  TrendingUp, Activity, Tag
 } from 'lucide-react';
-import { Transaction, TransactionCreate, TransactionType, DashboardStats } from './types';
+import { Transaction, TransactionCreate, TransactionType, DashboardStats, YearlyStats } from './types';
 
 // --- Mock Data Service (Fallback if backend isn't running) ---
 const MOCK_TRANSACTIONS: Transaction[] = [
@@ -52,6 +53,7 @@ const Card: React.FC<React.HTMLAttributes<HTMLDivElement> & { children: React.Re
 
 export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [yearlyStats, setYearlyStats] = useState<YearlyStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions'>('dashboard');
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -113,8 +115,22 @@ export default function App() {
     }
   };
 
+  const fetchYearlyStats = async (year: string) => {
+      try {
+          const res = await fetch(`${API_URL}/stats/year/${year}`);
+          if (res.ok) {
+              const data = await res.json();
+              setYearlyStats(data);
+          }
+      } catch (error) {
+          console.error("Failed to fetch yearly stats", error);
+      }
+  };
+
   useEffect(() => {
     fetchTransactions();
+    // Default to current year or extracted year from startDate if applicable
+    fetchYearlyStats(new Date().getFullYear().toString());
   }, []);
 
   // Stats Calculation
@@ -343,6 +359,77 @@ export default function App() {
              </Button>
         </div>
       </Card>
+
+      {/* Yearly Overview Section */}
+      {yearlyStats && (
+        <div className="space-y-4">
+             <h3 className="font-semibold text-gray-700 dark:text-gray-200">Yearly Overview</h3>
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 <Card className="bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-800/20 border-rose-200 dark:border-rose-800">
+                     <div className="flex items-start justify-between">
+                         <div>
+                             <p className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide">Highest Daily Spend</p>
+                             <div className="mt-2">
+                                 {yearlyStats.highest_spending_day ? (
+                                     <>
+                                         <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{yearlyStats.highest_spending_day.date}</p>
+                                         <p className="text-rose-600 dark:text-rose-400 font-semibold">${yearlyStats.highest_spending_day.amount.toFixed(2)}</p>
+                                     </>
+                                 ) : (
+                                     <p className="text-sm text-gray-500">No data</p>
+                                 )}
+                             </div>
+                         </div>
+                         <div className="p-2 bg-white/50 dark:bg-rose-900/30 rounded-lg text-rose-600">
+                             <TrendingUp size={20} />
+                         </div>
+                     </div>
+                 </Card>
+
+                 <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                     <div className="flex items-start justify-between">
+                         <div>
+                             <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Most Transactions Day</p>
+                             <div className="mt-2">
+                                 {yearlyStats.most_frequent_day ? (
+                                     <>
+                                         <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{yearlyStats.most_frequent_day.date}</p>
+                                         <p className="text-blue-600 dark:text-blue-400 font-semibold">{yearlyStats.most_frequent_day.count} items</p>
+                                     </>
+                                 ) : (
+                                      <p className="text-sm text-gray-500">No data</p>
+                                 )}
+                             </div>
+                         </div>
+                         <div className="p-2 bg-white/50 dark:bg-blue-900/30 rounded-lg text-blue-600">
+                             <Activity size={20} />
+                         </div>
+                     </div>
+                 </Card>
+
+                 <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+                     <div className="flex items-start justify-between">
+                         <div>
+                             <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide">Top Category</p>
+                             <div className="mt-2">
+                                 {yearlyStats.highest_category ? (
+                                     <>
+                                         <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{yearlyStats.highest_category.category}</p>
+                                         <p className="text-purple-600 dark:text-purple-400 font-semibold">${yearlyStats.highest_category.amount.toFixed(2)}</p>
+                                     </>
+                                 ) : (
+                                     <p className="text-sm text-gray-500">No data</p>
+                                 )}
+                             </div>
+                         </div>
+                         <div className="p-2 bg-white/50 dark:bg-purple-900/30 rounded-lg text-purple-600">
+                             <Tag size={20} />
+                         </div>
+                     </div>
+                 </Card>
+             </div>
+        </div>
+      )}
 
       {/* Charts Grid */}
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:pb-0">

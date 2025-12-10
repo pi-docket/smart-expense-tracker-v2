@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend 
 } from 'recharts';
 import { 
   Plus, Trash2, ArrowUpCircle, ArrowDownCircle, 
   LayoutDashboard, List, Wallet, Calculator,
-  ChevronLeft, ChevronRight, Moon, Sun, Download, Calendar
+  ChevronLeft, ChevronRight, Moon, Sun, Download, Calendar, X
 } from 'lucide-react';
 import { Transaction, TransactionCreate, TransactionType, DashboardStats } from './types';
 
@@ -23,6 +23,7 @@ const API_URL = ''; // Use relative path for proxy
 const EXPENSE_COLOR = '#e11d48';
 const INCOME_COLOR = '#059669';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#e11d48', '#8884d8'];
+const INITIAL_CATEGORIES = ['Food', 'Transport', 'Entertainment', 'Salary', 'Bills', 'Housing', 'Education', 'Shopping', 'Health', 'Other'];
 
 // --- Components ---
 
@@ -43,8 +44,8 @@ const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { variant
   );
 };
 
-const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm p-4 ${className}`}>
+const Card: React.FC<React.HTMLAttributes<HTMLDivElement> & { children: React.ReactNode }> = ({ children, className = '', ...props }) => (
+  <div className={`bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm p-4 ${className}`} {...props}>
     {children}
   </div>
 );
@@ -73,6 +74,13 @@ export default function App() {
   const [type, setType] = useState<TransactionType>('expense');
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [categories, setCategories] = useState(INITIAL_CATEGORIES);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [trendCategory, setTrendCategory] = useState('All');
+  const [recentPage, setRecentPage] = useState(1);
+  const [deleteTxId, setDeleteTxId] = useState<number | null>(null);
+  const timerRef = React.useRef<any>(null); // Use any to avoid NodeJS.Timeout type issues
+  const ITEMS_PER_PAGE = 5;
 
   // Load Theme
   useEffect(() => {
@@ -133,14 +141,27 @@ export default function App() {
   }, [filteredTransactions]);
 
   const weeklyData = useMemo(() => {
-    const data: Record<string, { date: string; income: number; expense: number }> = {};
+    const data: Record<string, { date: string; amount: number }> = {};
+    
+    // Initialize dates in range to avoid gaps
+    const dates = [];
+    const currDate = new Date(startDate);
+    const lastDate = new Date(endDate);
+    while (currDate <= lastDate) {
+        dates.push(currDate.toISOString().split('T')[0]);
+        currDate.setDate(currDate.getDate() + 1);
+    }
+    dates.forEach(d => { data[d] = { date: d, amount: 0 }; });
+
     filteredTransactions.forEach(t => {
-       if (!data[t.date]) data[t.date] = { date: t.date, income: 0, expense: 0 };
-       if (t.type === 'income') data[t.date].income += t.amount;
-       else data[t.date].expense += t.amount;
+       if (t.type === 'expense' && (trendCategory === 'All' || t.category === trendCategory)) {
+           if (data[t.date]) {
+               data[t.date].amount += t.amount;
+           }
+       }
     });
     return Object.values(data).sort((a, b) => a.date.localeCompare(b.date));
-  }, [filteredTransactions]);
+  }, [filteredTransactions, trendCategory, startDate, endDate]);
 
 
   // Handlers
@@ -159,6 +180,16 @@ export default function App() {
     if (isNaN(finalAmount) || finalAmount <= 0) {
       alert("Please enter a valid amount");
       return;
+    }
+
+    if (!category.trim()) {
+        alert("Please select or enter a category");
+        return;
+    }
+
+    // Add custom category to list if it's new
+    if (isCustomCategory && !categories.includes(category)) {
+        setCategories(prev => [...prev, category]);
     }
 
     const newTx: TransactionCreate = {
@@ -191,13 +222,18 @@ export default function App() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Delete this transaction?")) return;
+  const performDelete = async (id: number) => {
     try {
       const res = await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
       if (res.ok) await fetchTransactions();
     } catch (err) {
       setTransactions(transactions.filter(t => t.id !== id));
+    }
+  };
+
+  const handleDeleteClick = async (id: number) => {
+    if (confirm("Delete this transaction?")) {
+        await performDelete(id);
     }
   };
 
@@ -214,9 +250,31 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  // Long Press Handlers
+  const handleTouchStart = (id: number) => {
+      timerRef.current = setTimeout(() => {
+          setDeleteTxId(id);
+          if (navigator.vibrate) navigator.vibrate(50);
+      }, 500); // 500ms long press
+  };
+
+  const handleTouchEnd = () => {
+      if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+      }
+  };
+
+  const confirmMobileDelete = async () => {
+      if (deleteTxId !== null) {
+          await performDelete(deleteTxId);
+          setDeleteTxId(null);
+      }
+  };
+
   // --- Views ---
 
-  const DashboardView = () => (
+  const dashboardView = (
     <div className="space-y-6 pb-20">
       {/* Date Filter */}
       <Card className="flex flex-col md:flex-row gap-4 items-center justify-between p-3">
@@ -313,17 +371,41 @@ export default function App() {
             </div>
         </Card>
         <Card className="h-80 flex flex-col min-w-full lg:min-w-0 snap-center">
-            <h3 className="font-semibold mb-4 text-gray-700 dark:text-gray-200">Weekly Trend</h3>
-            <div className="flex-1 min-h-0">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-gray-700 dark:text-gray-200">Consumption Trend</h3>
+                <select 
+                    value={trendCategory}
+                    onChange={(e) => setTrendCategory(e.target.value)}
+                    className="text-sm border-none bg-gray-100 dark:bg-slate-700 rounded-lg px-2 py-1 outline-none text-gray-700 dark:text-gray-200"
+                >
+                    <option value="All">All Expenses</option>
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+            </div>
+            <div className="flex-1 min-h-0 bg-gradient-to-t from-white/0 to-white/0 rounded-xl overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={weeklyData} margin={{ bottom: 10 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="date" tick={{fontSize: 12}} />
-                        <YAxis tick={{fontSize: 12}} />
-                        <RechartsTooltip />
-                        <Bar dataKey="income" fill={INCOME_COLOR} radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="expense" fill={EXPENSE_COLOR} radius={[4, 4, 0, 0]} />
-                    </BarChart>
+                    <AreaChart data={weeklyData} margin={{ bottom: 10, left: -20, right: 10 }}>
+                        <defs>
+                            <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={EXPENSE_COLOR} stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor={EXPENSE_COLOR} stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                        <XAxis dataKey="date" tick={{fontSize: 10}} tickFormatter={(val) => val.slice(5)} />
+                        <YAxis tick={{fontSize: 10}} />
+                        <RechartsTooltip 
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        />
+                        <Area 
+                            type="monotone" 
+                            dataKey="amount" 
+                            stroke={EXPENSE_COLOR} 
+                            fillOpacity={1} 
+                            fill="url(#colorAmount)" 
+                            strokeWidth={3}
+                        />
+                    </AreaChart>
                 </ResponsiveContainer>
             </div>
         </Card>
@@ -333,26 +415,61 @@ export default function App() {
       <div className="md:hidden">
           <h3 className="font-semibold mb-2 text-gray-700 dark:text-gray-300 ml-1">Recent Activity</h3>
           <div className="space-y-3">
-              {filteredTransactions.slice(0, 5).map(t => (
-                  <Card key={t.id} className="flex justify-between items-center py-3">
-                      <div className="flex gap-3 items-center">
+              {filteredTransactions.slice((recentPage - 1) * ITEMS_PER_PAGE, recentPage * ITEMS_PER_PAGE).map(t => (
+                  <Card 
+                    key={t.id} 
+                    className="flex justify-between items-center py-3 active:scale-[0.98] transition-transform select-none"
+                    // @ts-ignore
+                    onTouchStart={() => handleTouchStart(t.id)}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchCancel={handleTouchEnd}
+                    onContextMenu={(e) => e.preventDefault()}
+                    onMouseDown={() => handleTouchStart(t.id)}
+                    onMouseUp={handleTouchEnd}
+                    onMouseLeave={handleTouchEnd}
+                  >
+                      <div className="flex gap-3 items-center pointer-events-none">
                           <div className={`w-2 h-10 rounded-full ${t.type === 'expense' ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
                           <div>
                               <p className="font-medium text-gray-800 dark:text-gray-100">{t.category}</p>
                               <p className="text-xs text-gray-500">{t.note || t.date}</p>
                           </div>
                       </div>
-                      <span className={`font-bold ${t.type === 'expense' ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      <span className={`font-bold ${t.type === 'expense' ? 'text-rose-600' : 'text-emerald-600'} pointer-events-none`}>
                           {t.type === 'expense' ? '-' : '+'}${t.amount}
                       </span>
                   </Card>
               ))}
           </div>
+          {/* Pagination Controls */}
+          {filteredTransactions.length > ITEMS_PER_PAGE && (
+              <div className="flex justify-between items-center mt-4 px-2">
+                  <Button 
+                      variant="ghost" 
+                      onClick={() => setRecentPage(p => Math.max(1, p - 1))}
+                      disabled={recentPage === 1}
+                      className={recentPage === 1 ? 'opacity-50' : ''}
+                  >
+                      <ChevronLeft size={20} /> Prev
+                  </Button>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Page {recentPage} of {Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE)}
+                  </span>
+                  <Button 
+                      variant="ghost" 
+                      onClick={() => setRecentPage(p => Math.min(Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE), p + 1))}
+                      disabled={recentPage === Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE)}
+                      className={recentPage === Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE) ? 'opacity-50' : ''}
+                  >
+                      Next <ChevronRight size={20} />
+                  </Button>
+              </div>
+          )}
+          </div>
       </div>
-    </div>
   );
 
-  const TransactionsView = () => (
+  const transactionsView = (
     <div className="space-y-4 pb-20">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">All Transactions</h2>
@@ -392,7 +509,7 @@ export default function App() {
                             </td>
                             <td className="p-4 text-center">
                                 <button 
-                                    onClick={() => handleDelete(t.id)}
+                                    onClick={() => performDelete(t.id)}
                                     className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                                 >
                                     <Trash2 size={18} />
@@ -452,7 +569,7 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 lg:p-6">
-        {activeTab === 'dashboard' ? <DashboardView /> : <TransactionsView />}
+        {activeTab === 'dashboard' ? dashboardView : transactionsView}
       </main>
 
       {/* Floating Action Button */}
@@ -523,21 +640,51 @@ export default function App() {
                             />
                         </div>
                         <div>
+                        <div>
                             <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Category</label>
-                            <select 
-                                value={category} 
-                                onChange={(e) => setCategory(e.target.value)}
-                                className="w-full p-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white"
-                            >
-                                <option>Food</option>
-                                <option>Transport</option>
-                                <option>Entertainment</option>
-                                <option>Salary</option>
-                                <option>Bills</option>
-                                <option>Shopping</option>
-                                <option>Health</option>
-                                <option>Other</option>
-                            </select>
+                            {isCustomCategory ? (
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text"
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        placeholder="Enter category name..."
+                                        className="flex-1 p-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        autoFocus
+                                    />
+                                    <Button 
+                                        type="button"
+                                        variant="secondary"
+                                        className="px-3"
+                                        title="Cancel custom category"
+                                        onClick={() => {
+                                            setIsCustomCategory(false);
+                                            setCategory(categories[0]);
+                                        }}
+                                    >
+                                        <X size={18} />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <select 
+                                    value={category} 
+                                    onChange={(e) => {
+                                        if (e.target.value === '___custom___') {
+                                            setIsCustomCategory(true);
+                                            setCategory('');
+                                        } else {
+                                            setCategory(e.target.value);
+                                        }
+                                    }}
+                                    className="w-full p-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white"
+                                >
+                                    {categories.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                    <option value="___custom___" className="font-bold text-blue-600">+ New Category...</option>
+                                </select>
+                            )}
+                        </div>
                         </div>
                     </div>
 
@@ -559,7 +706,25 @@ export default function App() {
             </div>
         </div>
       )}
-      
+
+      {/* Delete Confirmation Modal (Mobile) */}
+      {deleteTxId !== null && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-200">
+                <h3 className="font-bold text-lg dark:text-white mb-2">Delete Transaction?</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">Are you sure you want to remove this transaction? This action cannot be undone.</p>
+                <div className="flex gap-4">
+                    <Button variant="secondary" onClick={() => setDeleteTxId(null)} className="flex-1">
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={confirmMobileDelete} className="flex-1">
+                        Delete
+                    </Button>
+                </div>
+            </div>
+        </div>
+      )}
+
     </div>
   );
 }

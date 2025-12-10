@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend 
 } from 'recharts';
 import { 
   Plus, Trash2, ArrowUpCircle, ArrowDownCircle, 
@@ -76,6 +76,7 @@ export default function App() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [categories, setCategories] = useState(INITIAL_CATEGORIES);
   const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [trendCategory, setTrendCategory] = useState('All');
 
   // Load Theme
   useEffect(() => {
@@ -136,14 +137,27 @@ export default function App() {
   }, [filteredTransactions]);
 
   const weeklyData = useMemo(() => {
-    const data: Record<string, { date: string; income: number; expense: number }> = {};
+    const data: Record<string, { date: string; amount: number }> = {};
+    
+    // Initialize dates in range to avoid gaps
+    const dates = [];
+    const currDate = new Date(startDate);
+    const lastDate = new Date(endDate);
+    while (currDate <= lastDate) {
+        dates.push(currDate.toISOString().split('T')[0]);
+        currDate.setDate(currDate.getDate() + 1);
+    }
+    dates.forEach(d => { data[d] = { date: d, amount: 0 }; });
+
     filteredTransactions.forEach(t => {
-       if (!data[t.date]) data[t.date] = { date: t.date, income: 0, expense: 0 };
-       if (t.type === 'income') data[t.date].income += t.amount;
-       else data[t.date].expense += t.amount;
+       if (t.type === 'expense' && (trendCategory === 'All' || t.category === trendCategory)) {
+           if (data[t.date]) {
+               data[t.date].amount += t.amount;
+           }
+       }
     });
     return Object.values(data).sort((a, b) => a.date.localeCompare(b.date));
-  }, [filteredTransactions]);
+  }, [filteredTransactions, trendCategory, startDate, endDate]);
 
 
   // Handlers
@@ -229,7 +243,7 @@ export default function App() {
 
   // --- Views ---
 
-  const DashboardView = () => (
+  const dashboardView = (
     <div className="space-y-6 pb-20">
       {/* Date Filter */}
       <Card className="flex flex-col md:flex-row gap-4 items-center justify-between p-3">
@@ -326,17 +340,41 @@ export default function App() {
             </div>
         </Card>
         <Card className="h-80 flex flex-col min-w-full lg:min-w-0 snap-center">
-            <h3 className="font-semibold mb-4 text-gray-700 dark:text-gray-200">Weekly Trend</h3>
-            <div className="flex-1 min-h-0">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-gray-700 dark:text-gray-200">Consumption Trend</h3>
+                <select 
+                    value={trendCategory}
+                    onChange={(e) => setTrendCategory(e.target.value)}
+                    className="text-sm border-none bg-gray-100 dark:bg-slate-700 rounded-lg px-2 py-1 outline-none text-gray-700 dark:text-gray-200"
+                >
+                    <option value="All">All Expenses</option>
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+            </div>
+            <div className="flex-1 min-h-0 bg-gradient-to-t from-white/0 to-white/0 rounded-xl overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={weeklyData} margin={{ bottom: 10 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="date" tick={{fontSize: 12}} />
-                        <YAxis tick={{fontSize: 12}} />
-                        <RechartsTooltip />
-                        <Bar dataKey="income" fill={INCOME_COLOR} radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="expense" fill={EXPENSE_COLOR} radius={[4, 4, 0, 0]} />
-                    </BarChart>
+                    <AreaChart data={weeklyData} margin={{ bottom: 10, left: -20, right: 10 }}>
+                        <defs>
+                            <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={EXPENSE_COLOR} stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor={EXPENSE_COLOR} stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                        <XAxis dataKey="date" tick={{fontSize: 10}} tickFormatter={(val) => val.slice(5)} />
+                        <YAxis tick={{fontSize: 10}} />
+                        <RechartsTooltip 
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                        />
+                        <Area 
+                            type="monotone" 
+                            dataKey="amount" 
+                            stroke={EXPENSE_COLOR} 
+                            fillOpacity={1} 
+                            fill="url(#colorAmount)" 
+                            strokeWidth={3}
+                        />
+                    </AreaChart>
                 </ResponsiveContainer>
             </div>
         </Card>
@@ -365,7 +403,7 @@ export default function App() {
     </div>
   );
 
-  const TransactionsView = () => (
+  const transactionsView = (
     <div className="space-y-4 pb-20">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">All Transactions</h2>
@@ -465,7 +503,7 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 lg:p-6">
-        {activeTab === 'dashboard' ? <DashboardView /> : <TransactionsView />}
+        {activeTab === 'dashboard' ? dashboardView : transactionsView}
       </main>
 
       {/* Floating Action Button */}

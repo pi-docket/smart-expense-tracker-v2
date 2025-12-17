@@ -106,10 +106,10 @@ export default function App() {
       const res = await fetch(`${API_URL}/transactions/`);
       if (!res.ok) throw new Error('Failed to connect to backend');
       const data = await res.json();
-      setTransactions(data);
+      setTransactions(data.sort((a: Transaction, b: Transaction) => b.date.localeCompare(a.date) || b.id - a.id));
     } catch (error) {
       console.warn("Backend not reachable, using mock data for demo.");
-      setTransactions(MOCK_TRANSACTIONS);
+      setTransactions([...MOCK_TRANSACTIONS].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id));
     } finally {
       setLoading(false);
     }
@@ -239,7 +239,8 @@ export default function App() {
       console.error("Error adding transaction", err);
       // Fallback for demo
       const mockId = Math.max(...transactions.map(t => t.id), 0) + 1;
-      setTransactions([...transactions, { ...newTx, id: mockId }]);
+      const updatedMock = [...transactions, { ...newTx, id: mockId }].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+      setTransactions(updatedMock);
       setShowAddModal(false);
     }
   };

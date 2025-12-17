@@ -54,7 +54,7 @@ def get_db():
 
 @app.get("/transactions/", response_model=List[Transaction])
 def read_transactions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    transactions = db.query(models.Transaction).offset(skip).limit(limit).all()
+    transactions = db.query(models.Transaction).order_by(desc(models.Transaction.date), desc(models.Transaction.id)).offset(skip).limit(limit).all()
     return transactions
 
 @app.post("/transactions/", response_model=Transaction)

@@ -82,6 +82,7 @@ export default function App() {
     return d.toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [datePreset, setDatePreset] = useState('');
 
   // Derived Data (Filtered)
   const filteredTransactions = useMemo(() => {
@@ -313,24 +314,73 @@ export default function App() {
 
   // --- Views ---
 
+  const handleDatePresetChange = (preset: string) => {
+    const end = new Date();
+    const start = new Date();
+    
+    switch (preset) {
+        case '1M':
+            start.setMonth(start.getMonth() - 1);
+            break;
+        case '3M':
+            start.setMonth(start.getMonth() - 3);
+            break;
+        case '6M':
+            start.setMonth(start.getMonth() - 6);
+            break;
+        case '1Y':
+            start.setFullYear(start.getFullYear() - 1);
+            break;
+        case 'ALL':
+            start.setFullYear(2000);
+            break;
+        default:
+            return;
+    }
+    setStartDate(start.toISOString().split('T')[0]);
+    setEndDate(end.toISOString().split('T')[0]);
+    setDatePreset(preset);
+  };
+
   const dateFilterSection = (
     <Card className="flex flex-col md:flex-row gap-4 items-center justify-between p-3 mb-6">
         <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
             <Calendar size={20} />
             <span className="font-medium">Date Range</span>
         </div>
+
+        <select 
+            className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64 cursor-pointer"
+            onChange={(e) => {
+                handleDatePresetChange(e.target.value);
+            }}
+            value={datePreset}
+        >
+            <option value="" disabled>快速選擇</option>
+            <option value="1M">近一個月</option>
+            <option value="3M">近三個月</option>
+            <option value="6M">最近半年</option>
+            <option value="1Y">最近一年</option>
+            <option value="ALL">全部記錄</option>
+        </select>
         <div className="flex gap-2 w-full md:w-auto">
             <input 
                 type="date" 
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setDatePreset('');
+                }}
                 className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
             />
             <span className="self-center text-gray-400">-</span>
             <input 
                 type="date" 
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setDatePreset('');
+                }}
                 className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
             />
         </div>

@@ -505,7 +505,7 @@ export default function App() {
                                          <p className="text-purple-600 dark:text-purple-400 font-semibold">${yearlyStats.highest_category.amount.toFixed(2)}</p>
                                      </>
                                  ) : (
-                                     <p className="text-sm text-gray-500">No data</p>
+                                     <p className="text-sm text-gray-500">{t('noData')}</p>
                                  )}
                              </div>
                          </div>

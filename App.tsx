@@ -731,8 +731,8 @@ export default function App() {
             <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">
                     {filteredTransactions.length > 0 
-                        ? `${(currentPage - 1) * rowsPerPage + 1}-${Math.min(currentPage * rowsPerPage, filteredTransactions.length)} ${t('of')} ${filteredTransactions.length}`
-                        : '0-0'
+                        ? `${t('page')} ${currentPage} ${t('of')} ${Math.ceil(filteredTransactions.length / rowsPerPage)}`
+                        : `${t('page')} 0 ${t('of')} 0`
                     }
                 </span>
                 <div className="flex gap-1">

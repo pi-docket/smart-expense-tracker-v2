@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 backend/expenses.db
-
+backend/test.db
 # Python
 __pycache__/
 *.pyc
@@ -31,3 +31,4 @@ __pycache__/
 venv
 env
 *.db
+database.py

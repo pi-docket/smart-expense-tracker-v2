@@ -109,9 +109,15 @@ export default function App() {
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [trendCategory, setTrendCategory] = useState('All');
   const [recentPage, setRecentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteTxId, setDeleteTxId] = useState<number | null>(null);
   const timerRef = React.useRef<any>(null); // Use any to avoid NodeJS.Timeout type issues
   const ITEMS_PER_PAGE = 5;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredTransactions, rowsPerPage]);
 
   // Load Theme
   useEffect(() => {
@@ -666,7 +672,7 @@ export default function App() {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                    {filteredTransactions.map(t => (
+                    {filteredTransactions.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage).map(t => (
                         <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                             <td className="p-4 text-sm text-gray-600 dark:text-gray-300">{t.date}</td>
                             <td className="p-4">
@@ -695,8 +701,57 @@ export default function App() {
                             </td>
                         </tr>
                     ))}
+                    {filteredTransactions.length === 0 && (
+                        <tr>
+                            <td colSpan={5} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                                {t('noData')}
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
+        </div>
+        
+        {/* Desktop Pagination Controls */}
+        <div className="p-4 border-t border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50 dark:bg-slate-800/50">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <span>{t('rowsPerPage')}</span>
+                <select 
+                    value={rowsPerPage}
+                    onChange={(e) => setRowsPerPage(Number(e.target.value))}
+                    className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                    <option value={50}>50</option>
+                </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">
+                    {filteredTransactions.length > 0 
+                        ? `${(currentPage - 1) * rowsPerPage + 1}-${Math.min(currentPage * rowsPerPage, filteredTransactions.length)} ${t('of')} ${filteredTransactions.length}`
+                        : '0-0'
+                    }
+                </span>
+                <div className="flex gap-1">
+                    <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                    <button
+                        onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredTransactions.length / rowsPerPage), p + 1))}
+                        disabled={currentPage >= Math.ceil(filteredTransactions.length / rowsPerPage)}
+                        className="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                    >
+                        <ChevronRight size={20} />
+                    </button>
+                </div>
+            </div>
         </div>
       </div>
     </div>

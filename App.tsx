@@ -629,8 +629,31 @@ export default function App() {
             <div className="bg-blue-600 p-1.5 rounded-lg">
                 <Wallet className="text-white w-5 h-5" />
             </div>
-            <h1 className="font-bold text-lg text-gray-800 dark:text-white tracking-tight">LocalFlow</h1>
+            <h1 className="font-bold text-lg text-gray-800 dark:text-white tracking-tight">Flowing Gold 流金</h1>
         </div>
+
+        {/* Navigation Tabs (Moved to Header) */}
+        <div className="hidden md:flex items-center gap-6">
+            <button 
+                onClick={() => setActiveTab('dashboard')}
+                className={`text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'}`}
+            >
+                <LayoutDashboard size={18} /> Dashboard
+            </button>
+            <button 
+                onClick={() => setActiveTab('transactions')}
+                className={`text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'transactions' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'}`}
+            >
+                <List size={18} /> Transactions
+            </button>
+            <button 
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm shadow-blue-200 dark:shadow-none"
+            >
+                <Plus size={18} /> Add
+            </button>
+        </div>
+
         <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
@@ -639,29 +662,7 @@ export default function App() {
         </button>
       </header>
 
-      {/* Desktop Navigation (Moved to top of main content) */}
-      <div className="hidden md:flex justify-center mb-8">
-        <div className="bg-white dark:bg-slate-800 shadow-sm border border-gray-200 dark:border-slate-700 p-1 rounded-full inline-flex">
-            <button 
-                onClick={() => setActiveTab('dashboard')}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-blue-50 text-blue-600 dark:bg-slate-700 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}`}
-            >
-                <LayoutDashboard size={18} /> Dashboard
-            </button>
-            <button 
-                onClick={() => setActiveTab('transactions')}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'transactions' ? 'bg-blue-50 text-blue-600 dark:bg-slate-700 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}`}
-            >
-                <List size={18} /> Transactions
-            </button>
-            <button 
-                onClick={() => setShowAddModal(true)}
-                className="ml-2 pl-4 pr-6 py-2 border-l border-gray-200 dark:border-slate-600 text-blue-600 font-medium hover:text-blue-700 flex items-center gap-2"
-            >
-                <Plus size={18} /> Add
-            </button>
-        </div>
-      </div>
+
 
       {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 lg:p-6">

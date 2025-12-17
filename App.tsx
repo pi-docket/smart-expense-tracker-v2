@@ -337,6 +337,24 @@ export default function App() {
     const start = new Date();
     
     switch (preset) {
+        case '1W':
+            start.setDate(start.getDate() - 7);
+            break;
+        case 'PREV_WEEK':
+            // Previous Monday to Sunday
+            const day = start.getDay();
+            const diff = start.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+            const lastMonday = new Date(start.setDate(diff - 7));
+            const lastSunday = new Date(start.setDate(diff - 1));
+            start.setTime(lastMonday.getTime());
+            end.setTime(lastSunday.getTime());
+            break;
+        case 'PREV_MONTH':
+            // First day of previous month to last day of previous month
+            start.setMonth(start.getMonth() - 1);
+            start.setDate(1);
+            end.setDate(0); // 0th day of current month = last day of prev month
+            break;
         case '1M':
             start.setMonth(start.getMonth() - 1);
             break;
@@ -375,10 +393,15 @@ export default function App() {
             value={datePreset}
         >
             <option value="" disabled>{t('quickSelect')}</option>
+            <option value="1W">{t('lastWeek')}</option>
             <option value="1M">{t('lastMonth')}</option>
             <option value="3M">{t('last3Months')}</option>
             <option value="6M">{t('last6Months')}</option>
             <option value="1Y">{t('lastYear')}</option>
+            <option disabled>──────────</option>
+            <option value="PREV_WEEK">{t('prevWeek')}</option>
+            <option value="PREV_MONTH">{t('prevMonth')}</option>
+            <option disabled>──────────</option>
             <option value="ALL">{t('allRecords')}</option>
         </select>
         <div className="flex gap-2 w-full md:w-auto">

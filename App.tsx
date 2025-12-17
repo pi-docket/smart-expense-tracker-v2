@@ -62,7 +62,7 @@ const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { variant
 };
 
 const Card: React.FC<React.HTMLAttributes<HTMLDivElement> & { children: React.ReactNode }> = ({ children, className = '', ...props }) => (
-  <div className={`bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm p-4 ${className}`} {...props}>
+  <div className={`bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-gray-300 dark:border-slate-700 rounded-2xl shadow-sm p-4 ${className}`} {...props}>
     {children}
   </div>
 );
@@ -392,12 +392,12 @@ export default function App() {
 
       {/* Header Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-l-4 border-l-blue-600 text-gray-800 dark:text-white">
+        <Card className="border border-blue-600 text-gray-800 dark:text-white shadow-sm">
             <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Balance</p>
             <h2 className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">${stats.balance.toFixed(2)}</h2>
         </Card>
         <div className="grid grid-cols-2 gap-4 md:col-span-2">
-            <Card className="border-l-4 border-l-emerald-500">
+            <Card className="!border-emerald-500 dark:!border-emerald-400 shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-emerald-600 dark:text-emerald-400">
                         <ArrowUpCircle size={24} />
@@ -408,7 +408,7 @@ export default function App() {
                     </div>
                 </div>
             </Card>
-            <Card className="border-l-4 border-l-rose-500">
+            <Card className="!border-rose-500 dark:!border-rose-400 shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-full text-rose-600 dark:text-rose-400">
                         <ArrowDownCircle size={24} />

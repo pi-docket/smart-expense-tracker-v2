@@ -26,7 +26,7 @@ start http://localhost:3000
 echo.
 echo ==========================================
 echo Local Access:  http://localhost:3000
-echo Mobile Access: http://localhost:3000
+echo Mobile Access: 
 echo ==========================================
 echo.
 echo Done! Keep the windows open to keep the server running.

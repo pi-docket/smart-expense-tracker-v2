@@ -34,3 +34,4 @@ env
 *.db
 database.py
 
+run_app.bat

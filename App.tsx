@@ -23,7 +23,23 @@ const MOCK_TRANSACTIONS: Transaction[] = [
 const API_URL = ''; // Use relative path for proxy
 const EXPENSE_COLOR = '#e11d48';
 const INCOME_COLOR = '#059669';
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#e11d48', '#8884d8'];
+const COLORS = [
+  '#3B82F6', // Blue (Food)
+  '#10B981', // Emerald (Transport)
+  '#F59E0B', // Amber (Entertainment)
+  '#8B5CF6', // Violet (Salary)
+  '#EF4444', // Red (Bills)
+  '#06B6D4', // Cyan (Housing)
+  '#EC4899', // Pink (Education)
+  '#F97316', // Orange (Shopping)
+  '#84CC16', // Lime (Health)
+  '#64748B', // Slate (Other)
+  '#14B8A6', // Teal
+  '#D946EF', // Fuchsia
+  '#6366F1', // Indigo
+  '#EAB308', // Yellow
+  '#A855F7', // Purple
+];
 const INITIAL_CATEGORIES = ['Food', 'Transport', 'Entertainment', 'Salary', 'Bills', 'Housing', 'Education', 'Shopping', 'Health', 'Other'];
 
 // --- Components ---
@@ -326,9 +342,9 @@ export default function App() {
 
       {/* Header Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white dark:from-slate-700 dark:to-slate-800">
-            <p className="text-slate-400 text-sm font-medium">Total Balance</p>
-            <h2 className="text-3xl font-bold mt-1">${stats.balance.toFixed(2)}</h2>
+        <Card className="border-l-4 border-l-blue-600 text-gray-800 dark:text-white">
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Balance</p>
+            <h2 className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">${stats.balance.toFixed(2)}</h2>
         </Card>
         <div className="grid grid-cols-2 gap-4 md:col-span-2">
             <Card className="border-l-4 border-l-emerald-500">
@@ -395,26 +411,26 @@ export default function App() {
                      </div>
                  </Card>
 
-                 <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-                     <div className="flex items-start justify-between">
-                         <div>
-                             <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Most Transactions Day</p>
-                             <div className="mt-2">
-                                 {yearlyStats.most_frequent_day ? (
-                                     <>
-                                         <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{yearlyStats.most_frequent_day.date}</p>
-                                         <p className="text-blue-600 dark:text-blue-400 font-semibold">{yearlyStats.most_frequent_day.count} items</p>
-                                     </>
-                                 ) : (
-                                      <p className="text-sm text-gray-500">No data</p>
-                                 )}
-                             </div>
-                         </div>
-                         <div className="p-2 bg-white/50 dark:bg-blue-900/30 rounded-lg text-blue-600">
-                             <Activity size={20} />
-                         </div>
-                     </div>
-                 </Card>
+                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start justify-between">
+                          <div>
+                              <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Most Transactions Day</p>
+                              <div className="mt-2">
+                                  {yearlyStats.most_frequent_day ? (
+                                      <>
+                                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{yearlyStats.most_frequent_day.date}</p>
+                                          <p className="text-blue-600 dark:text-blue-400 font-semibold">{yearlyStats.most_frequent_day.count} items</p>
+                                      </>
+                                  ) : (
+                                       <p className="text-sm text-gray-500">No data</p>
+                                  )}
+                              </div>
+                          </div>
+                          <div className="p-2 bg-white/50 dark:bg-blue-900/30 rounded-lg text-blue-600">
+                              <Activity size={20} />
+                          </div>
+                      </div>
+                  </Card>
 
                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
                      <div className="flex items-start justify-between">
@@ -457,7 +473,7 @@ export default function App() {
                             dataKey="value"
                         >
                             {categoryData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                <Cell key={`cell-${index}`} fill={COLORS[categories.indexOf(entry.name) % COLORS.length] || '#CCCCCC'} />
                             ))}
                         </Pie>
                         <RechartsTooltip />
@@ -591,11 +607,14 @@ export default function App() {
                         <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                             <td className="p-4 text-sm text-gray-600 dark:text-gray-300">{t.date}</td>
                             <td className="p-4">
-                                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                    t.type === 'expense' 
-                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' 
-                                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                }`}>
+                                <span 
+                                    className="px-2 py-1 rounded text-xs font-bold border"
+                                    style={{
+                                        backgroundColor: `${COLORS[categories.indexOf(t.category) % COLORS.length] || '#888'}20`,
+                                        color: COLORS[categories.indexOf(t.category) % COLORS.length] || '#888',
+                                        borderColor: `${COLORS[categories.indexOf(t.category) % COLORS.length] || '#888'}40`
+                                    }}
+                                >
                                     {t.category}
                                 </span>
                             </td>
@@ -626,7 +645,7 @@ export default function App() {
       {/* Navbar */}
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-            <div className="bg-blue-600 p-1.5 rounded-lg">
+            <div className="bg-amber-500 p-1.5 rounded-lg">
                 <Wallet className="text-white w-5 h-5" />
             </div>
             <h1 className="font-bold text-lg text-gray-800 dark:text-white tracking-tight">Flowing Gold 流金</h1>

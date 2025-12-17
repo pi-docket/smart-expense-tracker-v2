@@ -23,7 +23,23 @@ const MOCK_TRANSACTIONS: Transaction[] = [
 const API_URL = ''; // Use relative path for proxy
 const EXPENSE_COLOR = '#e11d48';
 const INCOME_COLOR = '#059669';
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#e11d48', '#8884d8'];
+const COLORS = [
+  '#3B82F6', // Blue (Food)
+  '#10B981', // Emerald (Transport)
+  '#F59E0B', // Amber (Entertainment)
+  '#8B5CF6', // Violet (Salary)
+  '#EF4444', // Red (Bills)
+  '#06B6D4', // Cyan (Housing)
+  '#EC4899', // Pink (Education)
+  '#F97316', // Orange (Shopping)
+  '#84CC16', // Lime (Health)
+  '#64748B', // Slate (Other)
+  '#14B8A6', // Teal
+  '#D946EF', // Fuchsia
+  '#6366F1', // Indigo
+  '#EAB308', // Yellow
+  '#A855F7', // Purple
+];
 const INITIAL_CATEGORIES = ['Food', 'Transport', 'Entertainment', 'Salary', 'Bills', 'Housing', 'Education', 'Shopping', 'Health', 'Other'];
 
 // --- Components ---
@@ -106,10 +122,10 @@ export default function App() {
       const res = await fetch(`${API_URL}/transactions/`);
       if (!res.ok) throw new Error('Failed to connect to backend');
       const data = await res.json();
-      setTransactions(data);
+      setTransactions(data.sort((a: Transaction, b: Transaction) => b.date.localeCompare(a.date) || b.id - a.id));
     } catch (error) {
       console.warn("Backend not reachable, using mock data for demo.");
-      setTransactions(MOCK_TRANSACTIONS);
+      setTransactions([...MOCK_TRANSACTIONS].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id));
     } finally {
       setLoading(false);
     }
@@ -132,6 +148,12 @@ export default function App() {
     // Default to current year or extracted year from startDate if applicable
     fetchYearlyStats(new Date().getFullYear().toString());
   }, []);
+
+  // Update categories based on transactions
+  useEffect(() => {
+    const uniqueCategories = Array.from(new Set([...INITIAL_CATEGORIES, ...transactions.map(t => t.category)]));
+    setCategories(uniqueCategories);
+  }, [transactions]);
 
   // Stats Calculation
   const stats: DashboardStats = useMemo(() => {
@@ -233,7 +255,8 @@ export default function App() {
       console.error("Error adding transaction", err);
       // Fallback for demo
       const mockId = Math.max(...transactions.map(t => t.id), 0) + 1;
-      setTransactions([...transactions, { ...newTx, id: mockId }]);
+      const updatedMock = [...transactions, { ...newTx, id: mockId }].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+      setTransactions(updatedMock);
       setShowAddModal(false);
     }
   };
@@ -290,36 +313,38 @@ export default function App() {
 
   // --- Views ---
 
+  const dateFilterSection = (
+    <Card className="flex flex-col md:flex-row gap-4 items-center justify-between p-3 mb-6">
+        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <Calendar size={20} />
+            <span className="font-medium">Date Range</span>
+        </div>
+        <div className="flex gap-2 w-full md:w-auto">
+            <input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="self-center text-gray-400">-</span>
+            <input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
+            />
+        </div>
+    </Card>
+  );
+
   const dashboardView = (
     <div className="space-y-6 pb-20">
-      {/* Date Filter */}
-      <Card className="flex flex-col md:flex-row gap-4 items-center justify-between p-3">
-          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-              <Calendar size={20} />
-              <span className="font-medium">Date Range</span>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-              <input 
-                  type="date" 
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="self-center text-gray-400">-</span>
-              <input 
-                  type="date" 
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
-              />
-          </div>
-      </Card>
 
       {/* Header Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white dark:from-slate-700 dark:to-slate-800">
-            <p className="text-slate-400 text-sm font-medium">Total Balance</p>
-            <h2 className="text-3xl font-bold mt-1">${stats.balance.toFixed(2)}</h2>
+        <Card className="border-l-4 border-l-blue-600 text-gray-800 dark:text-white">
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Balance</p>
+            <h2 className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">${stats.balance.toFixed(2)}</h2>
         </Card>
         <div className="grid grid-cols-2 gap-4 md:col-span-2">
             <Card className="border-l-4 border-l-emerald-500">
@@ -364,8 +389,8 @@ export default function App() {
       {yearlyStats && (
         <div className="space-y-4">
              <h3 className="font-semibold text-gray-700 dark:text-gray-200">Yearly Overview</h3>
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                 <Card className="bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-800/20 border-rose-200 dark:border-rose-800">
+             <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:grid md:grid-cols-3 md:pb-0 no-scrollbar">
+                 <Card className="min-w-[85%] sm:min-w-[60%] md:min-w-0 snap-center bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-800/20 border-rose-200 dark:border-rose-800">
                      <div className="flex items-start justify-between">
                          <div>
                              <p className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide">Highest Daily Spend</p>
@@ -386,28 +411,28 @@ export default function App() {
                      </div>
                  </Card>
 
-                 <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
-                     <div className="flex items-start justify-between">
-                         <div>
-                             <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Most Transactions Day</p>
-                             <div className="mt-2">
-                                 {yearlyStats.most_frequent_day ? (
-                                     <>
-                                         <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{yearlyStats.most_frequent_day.date}</p>
-                                         <p className="text-blue-600 dark:text-blue-400 font-semibold">{yearlyStats.most_frequent_day.count} items</p>
-                                     </>
-                                 ) : (
-                                      <p className="text-sm text-gray-500">No data</p>
-                                 )}
-                             </div>
-                         </div>
-                         <div className="p-2 bg-white/50 dark:bg-blue-900/30 rounded-lg text-blue-600">
-                             <Activity size={20} />
-                         </div>
-                     </div>
-                 </Card>
+                  <Card className="min-w-[85%] sm:min-w-[60%] md:min-w-0 snap-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start justify-between">
+                          <div>
+                              <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Most Transactions Day</p>
+                              <div className="mt-2">
+                                  {yearlyStats.most_frequent_day ? (
+                                      <>
+                                          <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{yearlyStats.most_frequent_day.date}</p>
+                                          <p className="text-blue-600 dark:text-blue-400 font-semibold">{yearlyStats.most_frequent_day.count} items</p>
+                                      </>
+                                  ) : (
+                                       <p className="text-sm text-gray-500">No data</p>
+                                  )}
+                              </div>
+                          </div>
+                          <div className="p-2 bg-white/50 dark:bg-blue-900/30 rounded-lg text-blue-600">
+                              <Activity size={20} />
+                          </div>
+                      </div>
+                  </Card>
 
-                 <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+                 <Card className="min-w-[85%] sm:min-w-[60%] md:min-w-0 snap-center bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
                      <div className="flex items-start justify-between">
                          <div>
                              <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide">Top Category</p>
@@ -448,7 +473,7 @@ export default function App() {
                             dataKey="value"
                         >
                             {categoryData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                <Cell key={`cell-${index}`} fill={COLORS[categories.indexOf(entry.name) % COLORS.length] || '#CCCCCC'} />
                             ))}
                         </Pie>
                         <RechartsTooltip />
@@ -578,15 +603,18 @@ export default function App() {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                    {transactions.map(t => (
+                    {filteredTransactions.map(t => (
                         <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                             <td className="p-4 text-sm text-gray-600 dark:text-gray-300">{t.date}</td>
                             <td className="p-4">
-                                <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                    t.type === 'expense' 
-                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' 
-                                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                }`}>
+                                <span 
+                                    className="px-2 py-1 rounded text-xs font-bold border"
+                                    style={{
+                                        backgroundColor: `${COLORS[categories.indexOf(t.category) % COLORS.length] || '#888'}20`,
+                                        color: COLORS[categories.indexOf(t.category) % COLORS.length] || '#888',
+                                        borderColor: `${COLORS[categories.indexOf(t.category) % COLORS.length] || '#888'}40`
+                                    }}
+                                >
                                     {t.category}
                                 </span>
                             </td>
@@ -617,11 +645,34 @@ export default function App() {
       {/* Navbar */}
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-            <div className="bg-blue-600 p-1.5 rounded-lg">
+            <div className="bg-amber-500 p-1.5 rounded-lg">
                 <Wallet className="text-white w-5 h-5" />
             </div>
-            <h1 className="font-bold text-lg text-gray-800 dark:text-white tracking-tight">LocalFlow</h1>
+            <h1 className="font-bold text-lg text-gray-800 dark:text-white tracking-tight">Flowing Gold 流金</h1>
         </div>
+
+        {/* Navigation Tabs (Moved to Header) */}
+        <div className="hidden md:flex items-center gap-6">
+            <button 
+                onClick={() => setActiveTab('dashboard')}
+                className={`text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'}`}
+            >
+                <LayoutDashboard size={18} /> Dashboard
+            </button>
+            <button 
+                onClick={() => setActiveTab('transactions')}
+                className={`text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'transactions' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'}`}
+            >
+                <List size={18} /> Transactions
+            </button>
+            <button 
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm shadow-blue-200 dark:shadow-none"
+            >
+                <Plus size={18} /> Add
+            </button>
+        </div>
+
         <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
@@ -630,32 +681,11 @@ export default function App() {
         </button>
       </header>
 
-      {/* Desktop Navigation (Moved to top of main content) */}
-      <div className="hidden md:flex justify-center mb-8">
-        <div className="bg-white dark:bg-slate-800 shadow-sm border border-gray-200 dark:border-slate-700 p-1 rounded-full inline-flex">
-            <button 
-                onClick={() => setActiveTab('dashboard')}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-blue-50 text-blue-600 dark:bg-slate-700 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}`}
-            >
-                <LayoutDashboard size={18} /> Dashboard
-            </button>
-            <button 
-                onClick={() => setActiveTab('transactions')}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'transactions' ? 'bg-blue-50 text-blue-600 dark:bg-slate-700 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'}`}
-            >
-                <List size={18} /> Transactions
-            </button>
-            <button 
-                onClick={() => setShowAddModal(true)}
-                className="ml-2 pl-4 pr-6 py-2 border-l border-gray-200 dark:border-slate-600 text-blue-600 font-medium hover:text-blue-700 flex items-center gap-2"
-            >
-                <Plus size={18} /> Add
-            </button>
-        </div>
-      </div>
+
 
       {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 lg:p-6">
+        {dateFilterSection}
         {activeTab === 'dashboard' ? dashboardView : transactionsView}
       </main>
 
@@ -716,7 +746,7 @@ export default function App() {
                         <p className="text-xs text-gray-400 mt-1">Supports math (e.g., 50+20)</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Date</label>
                             <input 
@@ -727,22 +757,21 @@ export default function App() {
                             />
                         </div>
                         <div>
-                        <div>
                             <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Category</label>
                             {isCustomCategory ? (
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 w-full">
                                     <input 
                                         type="text"
                                         value={category}
                                         onChange={(e) => setCategory(e.target.value)}
                                         placeholder="Enter category name..."
-                                        className="flex-1 p-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="flex-1 min-w-0 p-2 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                                         autoFocus
                                     />
                                     <Button 
                                         type="button"
                                         variant="secondary"
-                                        className="px-3"
+                                        className="px-3 shrink-0"
                                         title="Cancel custom category"
                                         onClick={() => {
                                             setIsCustomCategory(false);
@@ -771,7 +800,6 @@ export default function App() {
                                     <option value="___custom___" className="font-bold text-blue-600">+ New Category...</option>
                                 </select>
                             )}
-                        </div>
                         </div>
                     </div>
 

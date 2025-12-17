@@ -1,69 +1,118 @@
-# LocalFlow - Personal Expense Tracker
+# Flowing Gold (流金) 💰
 
-LocalFlow is a beautiful, modern, and responsive personal expense tracker application that works fully locally. It features a React frontend and a Python FastAPI backend with SQLite database.
+**Flowing Gold** is a beautiful, modern, and privacy-focused personal expense tracker application. It empowers you to manage your finances locally with a stunning React frontend and a robust Python FastAPI backend.
 
-## Features
+![Project Banner](https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=1000)
+*(Replace with actual screenshot)*
 
-- **Dashboard**: Visual overview of your finances with Pie Charts and Bar Charts.
-- **Yearly Overview**: View detailed yearly statistics including highest spending day, most frequent transaction day, and top spending category.
-- **Date Range Filtering**: Analyze your spending behaviors for specific time periods.
-- **Transaction Management**: Add, view, and delete income and expense records.
-- **Responsive Design**: Works perfectly on Desktop, Tablet, and Mobile devices.
-- **Dark Mode**: Built-in dark mode support.
-- **Local Database**: All data is stored locally in `expenses.db` (SQLite).
-- **Calculator**: Built-in calculator input for amounts.
-- **CSV Export**: Export your transaction data to CSV anytime.
+## ✨ Key Features
 
-## Tech Stack
+*   **🌍 Multi-language Support**: Fully localized in **English**, **Traditional Chinese (繁體中文)**, **Japanese (日本語)**, and **Korean (한국어)**.
+*   **📊 Interactive Dashboard**: Visualize your finances with dynamic **Pie Charts** (Expenses by Category) and **Area Charts** (Consumption Trend).
+*   **📱 Responsive & Mobile-First**: A seamless experience across Desktop, Tablet, and Mobile devices. Includes touch-friendly interactions like swiping for charts.
+*   **🌗 Dark Mode**: Built-in toggle for Light and Dark themes to suit your preference.
+*   **📅 Advanced Filtering**: Analyze spending by custom date ranges or quick presets (Last Month, 3 Months, etc.).
+*   **📝 Transaction Management**:
+    *   Easily add income and expenses with a built-in calculator (e.g., input `50+20`).
+    *   Paginated transaction list with custom rows per page (10, 20, 30, 50).
+    *   Delete records with safety confirmation.
+*   **📈 Yearly Statistics**: Deep insights into your highest spending days, most frequent transaction days, and top categories of the year.
+*   **🔒 Local & Private**: Your data stays on your machine, stored in a local SQLite database (`expenses.db`).
+*   **📂 CSV Export**: Export your data anytime for external analysis.
 
-- **Frontend**: React, TypeScript, Tailwind CSS, Recharts, Lucide React
-- **Backend**: Python, FastAPI, SQLAlchemy
-- **Database**: SQLite
+## 🛠️ Tech Stack
 
-## Getting Started
+*   **Frontend**:
+    *   [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+    *   [Vite](https://vitejs.dev/) - Blazing fast build tool
+    *   [Tailwind CSS](https://tailwindcss.com/) - Utility-first styling
+    *   [Recharts](https://recharts.org/) - Data visualization
+    *   [Lucide React](https://lucide.dev/) - Beautiful icons
+*   **Backend**:
+    *   [Python](https://www.python.org/) (3.8+)
+    *   [FastAPI](https://fastapi.tiangolo.com/) - Modern, high-performance web framework
+    *   [SQLAlchemy](https://www.sqlalchemy.org/) - SQL Toolkit and ORM
+    *   [SQLite](https://www.sqlite.org/) - Lightweight disk-based database
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to get a local copy up and running.
 
 ### Prerequisites
 
-- Node.js & npm
-- Python 3.8+
+*   Node.js & npm
+*   Python 3.8+
 
 ### Installation
 
-1.  **Clone or Download the project**
-2.  **Install Frontend Dependencies**
+1.  **Clone the repository**
     ```bash
-    npm install
+    git clone https://github.com/yourusername/flowing-gold.git
+    cd flowing-gold
     ```
-3.  **Install Backend Dependencies**
+
+2.  **Backend Setup**
+    Navigate to the project root and install Python dependencies:
     ```bash
     pip install -r backend/requirements.txt
     ```
 
-### Running the App
-
-1.  **Start the Backend Server** (in one terminal)
+3.  **Frontend Setup**
+    Install Node.js dependencies:
     ```bash
-    # Run from the root directory or inside backend/ directory
-    # If in root:
-    python -m uvicorn backend.main:app --reload
-
-    # If inside backend/ directory:
-    # uvicorn main:app --reload
+    npm install
     ```
-    The backend will run at `http://127.0.0.1:8000`.
 
-2.  **Start the Frontend Dev Server** (in another terminal)
-    ```bash
-    npm run dev
+### Database Configuration (Optional)
+
+By default, the application uses `test.db` (which may contain generated test data) or `expenses.db`. Before running the app, you can choose which database to use:
+
+1.  Open `backend/database.py`.
+2.  Modify the `SQLALCHEMY_DATABASE_URL` line:
+    ```python
+    # To use a clean/production database:
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./expenses.db"
+
+    # To use the test database with sample data:
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
     ```
-    Open the link shown (usually `http://localhost:5173`) in your browser.
 
-## Usage Tips
+### ▶️ Running the Application
 
-- **Add Transaction**: Click the "+ Add" button (on desktop top right, or mobile floating button manually enabled if checking old versions, but currently unified in UI).
-- **Date Filter**: Use the date pickers at the top of the dashboard to filter statistics.
-- **Mobile Swipe**: On mobile, swipe left/right to switch between the Pie Chart and Weekly Trend charts.
+You need to run both the backend and frontend servers.
 
-## License
+**1. Start the Backend Server**
+Open a terminal and run:
+```bash
+# Windows
+python -m uvicorn backend.main:app --reload
 
-MIT
+# Mac/Linux
+python3 -m uvicorn backend.main:app --reload
+```
+*The backend API will be available at `http://127.0.0.1:8000`*
+
+**2. Start the Frontend Application**
+Open a second terminal and run:
+```bash
+npm run dev
+```
+*Open the link shown (typically `http://localhost:5173`) in your browser to start tracking!*
+
+---
+
+## 💡 Usage Tips
+
+*   **Calculator Input**: When adding a transaction, you can type math expressions directly into the amount field (e.g., typing `120*2` will save `240`).
+*   **Quick Category**: Select from default categories or type to create a temporary custom one (for current session view).
+*   **Switch Language**: Click the Globe icon 🌐 in the header to switch between EN, ZH, JA, and KO.
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+Made with ❤️ by Flowing Gold Team

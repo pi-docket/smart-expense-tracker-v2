@@ -7,9 +7,10 @@ import {
   Plus, Trash2, ArrowUpCircle, ArrowDownCircle, 
   LayoutDashboard, List, Wallet, Calculator,
   ChevronLeft, ChevronRight, Moon, Sun, Download, Calendar, X,
-  TrendingUp, Activity, Tag
+  TrendingUp, Activity, Tag, Globe
 } from 'lucide-react';
 import { Transaction, TransactionCreate, TransactionType, DashboardStats, YearlyStats } from './types';
+import { TRANSLATIONS, Language } from './translations';
 
 // --- Mock Data Service (Fallback if backend isn't running) ---
 const MOCK_TRANSACTIONS: Transaction[] = [
@@ -68,6 +69,11 @@ const Card: React.FC<React.HTMLAttributes<HTMLDivElement> & { children: React.Re
 );
 
 export default function App() {
+  const [language, setLanguage] = useState('zh');
+  const t = (key: keyof typeof TRANSLATIONS['en']) => {
+    return TRANSLATIONS[language as Language][key] || TRANSLATIONS['en'][key];
+  };
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [yearlyStats, setYearlyStats] = useState<YearlyStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -217,12 +223,12 @@ export default function App() {
     }
 
     if (isNaN(finalAmount) || finalAmount <= 0) {
-      alert("Please enter a valid amount");
+      alert(t('validAmount'));
       return;
     }
 
     if (!category.trim()) {
-        alert("Please select or enter a category");
+        alert(t('validCategory'));
         return;
     }
 
@@ -272,7 +278,7 @@ export default function App() {
   };
 
   const handleDeleteClick = async (id: number) => {
-    if (confirm("Delete this transaction?")) {
+    if (confirm(t('confirmDelete'))) {
         await performDelete(id);
     }
   };
@@ -346,7 +352,7 @@ export default function App() {
     <Card className="flex flex-col md:flex-row gap-4 items-center justify-between p-3 mb-6">
         <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
             <Calendar size={20} />
-            <span className="font-medium">Date Range</span>
+            <span className="font-medium">{t('dateRange')}</span>
         </div>
 
         <select 
@@ -356,12 +362,12 @@ export default function App() {
             }}
             value={datePreset}
         >
-            <option value="" disabled>快速選擇</option>
-            <option value="1M">近一個月</option>
-            <option value="3M">近三個月</option>
-            <option value="6M">最近半年</option>
-            <option value="1Y">最近一年</option>
-            <option value="ALL">全部記錄</option>
+            <option value="" disabled>{t('quickSelect')}</option>
+            <option value="1M">{t('lastMonth')}</option>
+            <option value="3M">{t('last3Months')}</option>
+            <option value="6M">{t('last6Months')}</option>
+            <option value="1Y">{t('lastYear')}</option>
+            <option value="ALL">{t('allRecords')}</option>
         </select>
         <div className="flex gap-2 w-full md:w-auto">
             <input 
@@ -393,7 +399,7 @@ export default function App() {
       {/* Header Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border border-blue-600 text-gray-800 dark:text-white shadow-sm">
-            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Balance</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{t('totalBalance')}</p>
             <h2 className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">${stats.balance.toFixed(2)}</h2>
         </Card>
         <div className="grid grid-cols-2 gap-4 md:col-span-2">
@@ -403,7 +409,7 @@ export default function App() {
                         <ArrowUpCircle size={24} />
                     </div>
                     <div>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold tracking-wider">Income</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold tracking-wider">{t('income')}</p>
                         <p className="text-xl font-bold text-gray-800 dark:text-gray-100">${stats.totalIncome.toFixed(0)}</p>
                     </div>
                 </div>
@@ -414,7 +420,7 @@ export default function App() {
                         <ArrowDownCircle size={24} />
                     </div>
                     <div>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold tracking-wider">Expense</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold tracking-wider">{t('expense')}</p>
                         <p className="text-xl font-bold text-gray-800 dark:text-gray-100">${stats.totalExpense.toFixed(0)}</p>
                     </div>
                 </div>
@@ -425,7 +431,7 @@ export default function App() {
       {/* Today's Insight */}
       <Card className="flex justify-between items-center">
         <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Spent Today</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('spentToday')}</p>
             <p className="text-2xl font-bold text-rose-600 dark:text-rose-400">${stats.todayExpense.toFixed(2)}</p>
         </div>
         <div className="text-right">
@@ -438,12 +444,12 @@ export default function App() {
       {/* Yearly Overview Section */}
       {yearlyStats && (
         <div className="space-y-4">
-             <h3 className="font-semibold text-gray-700 dark:text-gray-200">Yearly Overview</h3>
+             <h3 className="font-semibold text-gray-700 dark:text-gray-200">{t('yearlyOverview')}</h3>
              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:grid md:grid-cols-3 md:pb-0 no-scrollbar">
                  <Card className="min-w-[85%] sm:min-w-[60%] md:min-w-0 snap-center bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-800/20 border-rose-200 dark:border-rose-800">
                      <div className="flex items-start justify-between">
                          <div>
-                             <p className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide">Highest Daily Spend</p>
+                             <p className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide">{t('highestDailySpend')}</p>
                              <div className="mt-2">
                                  {yearlyStats.highest_spending_day ? (
                                      <>
@@ -451,7 +457,7 @@ export default function App() {
                                          <p className="text-rose-600 dark:text-rose-400 font-semibold">${yearlyStats.highest_spending_day.amount.toFixed(2)}</p>
                                      </>
                                  ) : (
-                                     <p className="text-sm text-gray-500">No data</p>
+                                     <p className="text-sm text-gray-500">{t('noData')}</p>
                                  )}
                              </div>
                          </div>
@@ -464,15 +470,15 @@ export default function App() {
                   <Card className="min-w-[85%] sm:min-w-[60%] md:min-w-0 snap-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
                       <div className="flex items-start justify-between">
                           <div>
-                              <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Most Transactions Day</p>
+                              <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">{t('mostTransactionsDay')}</p>
                               <div className="mt-2">
                                   {yearlyStats.most_frequent_day ? (
                                       <>
                                           <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{yearlyStats.most_frequent_day.date}</p>
-                                          <p className="text-blue-600 dark:text-blue-400 font-semibold">{yearlyStats.most_frequent_day.count} items</p>
+                                          <p className="text-blue-600 dark:text-blue-400 font-semibold">{yearlyStats.most_frequent_day.count} {t('items')}</p>
                                       </>
                                   ) : (
-                                       <p className="text-sm text-gray-500">No data</p>
+                                       <p className="text-sm text-gray-500">{t('noData')}</p>
                                   )}
                               </div>
                           </div>
@@ -485,7 +491,7 @@ export default function App() {
                  <Card className="min-w-[85%] sm:min-w-[60%] md:min-w-0 snap-center bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
                      <div className="flex items-start justify-between">
                          <div>
-                             <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide">Top Category</p>
+                             <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide">{t('topCategory')}</p>
                              <div className="mt-2">
                                  {yearlyStats.highest_category ? (
                                      <>
@@ -509,7 +515,7 @@ export default function App() {
       {/* Charts Grid */}
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:pb-0">
         <Card className="h-80 flex flex-col min-w-full lg:min-w-0 snap-center">
-            <h3 className="font-semibold mb-4 text-gray-700 dark:text-gray-200">Expenses by Category</h3>
+            <h3 className="font-semibold mb-4 text-gray-700 dark:text-gray-200">{t('expensesByCategory')}</h3>
             <div className="flex-1 min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart margin={{ bottom: 20 }}>
@@ -534,13 +540,13 @@ export default function App() {
         </Card>
         <Card className="h-80 flex flex-col min-w-full lg:min-w-0 snap-center">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-gray-700 dark:text-gray-200">Consumption Trend</h3>
+                <h3 className="font-semibold text-gray-700 dark:text-gray-200">{t('consumptionTrend')}</h3>
                 <select 
                     value={trendCategory}
                     onChange={(e) => setTrendCategory(e.target.value)}
                     className="text-sm border-none bg-gray-100 dark:bg-slate-700 rounded-lg px-2 py-1 outline-none text-gray-700 dark:text-gray-200"
                 >
-                    <option value="All">All Expenses</option>
+                    <option value="All">{t('allExpenses')}</option>
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
             </div>
@@ -575,7 +581,7 @@ export default function App() {
 
       {/* Recent Transactions (Mobile Friendly) */}
       <div className="md:hidden">
-          <h3 className="font-semibold mb-2 text-gray-700 dark:text-gray-300 ml-1">Recent Activity</h3>
+          <h3 className="font-semibold mb-2 text-gray-700 dark:text-gray-300 ml-1">{t('recentActivity')}</h3>
           <div className="space-y-3">
               {filteredTransactions.slice((recentPage - 1) * ITEMS_PER_PAGE, recentPage * ITEMS_PER_PAGE).map(t => (
                   <Card 
@@ -612,10 +618,10 @@ export default function App() {
                       disabled={recentPage === 1}
                       className={recentPage === 1 ? 'opacity-50' : ''}
                   >
-                      <ChevronLeft size={20} /> Prev
+                      <ChevronLeft size={20} /> {t('prev')}
                   </Button>
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                      Page {recentPage} of {Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE)}
+                      {t('page')} {recentPage} {t('of')} {Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE)}
                   </span>
                   <Button 
                       variant="ghost" 
@@ -623,7 +629,7 @@ export default function App() {
                       disabled={recentPage === Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE)}
                       className={recentPage === Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE) ? 'opacity-50' : ''}
                   >
-                      Next <ChevronRight size={20} />
+                      {t('next')} <ChevronRight size={20} />
                   </Button>
               </div>
           )}
@@ -634,9 +640,9 @@ export default function App() {
   const transactionsView = (
     <div className="space-y-4 pb-20">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">All Transactions</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{t('allTransactions')}</h2>
         <Button onClick={exportData} variant="secondary">
-            <Download size={16} /> Export CSV
+            <Download size={16} /> {t('exportCSV')}
         </Button>
       </div>
 
@@ -645,11 +651,11 @@ export default function App() {
             <table className="w-full text-left border-collapse">
                 <thead>
                     <tr className="bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-300 text-sm border-b dark:border-slate-600">
-                        <th className="p-4 font-semibold">Date</th>
-                        <th className="p-4 font-semibold">Category</th>
-                        <th className="p-4 font-semibold">Note</th>
-                        <th className="p-4 font-semibold text-right">Amount</th>
-                        <th className="p-4 font-semibold text-center">Action</th>
+                        <th className="p-4 font-semibold">{t('date')}</th>
+                        <th className="p-4 font-semibold">{t('category')}</th>
+                        <th className="p-4 font-semibold">{t('note')}</th>
+                        <th className="p-4 font-semibold text-right">{t('amount')}</th>
+                        <th className="p-4 font-semibold text-center">{t('action')}</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
@@ -689,6 +695,8 @@ export default function App() {
     </div>
   );
 
+
+
   return (
     <div className="min-h-screen flex flex-col relative font-sans selection:bg-blue-100 dark:selection:bg-blue-900">
       
@@ -698,7 +706,7 @@ export default function App() {
             <div className="bg-amber-500 p-1.5 rounded-lg">
                 <Wallet className="text-white w-5 h-5" />
             </div>
-            <h1 className="font-bold text-lg text-gray-800 dark:text-white tracking-tight">Flowing Gold 流金</h1>
+            <h1 className="font-bold text-lg text-gray-800 dark:text-white tracking-tight">{t('appName')}</h1>
         </div>
 
         {/* Navigation Tabs (Moved to Header) */}
@@ -707,28 +715,45 @@ export default function App() {
                 onClick={() => setActiveTab('dashboard')}
                 className={`text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'}`}
             >
-                <LayoutDashboard size={18} /> Dashboard
+                <LayoutDashboard size={18} /> {t('dashboard')}
             </button>
             <button 
                 onClick={() => setActiveTab('transactions')}
                 className={`text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'transactions' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'}`}
             >
-                <List size={18} /> Transactions
+                <List size={18} /> {t('transactions')}
             </button>
             <button 
                 onClick={() => setShowAddModal(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm shadow-blue-200 dark:shadow-none"
             >
-                <Plus size={18} /> Add
+                <Plus size={18} /> {t('add')}
             </button>
         </div>
 
-        <button 
-            onClick={() => setIsDarkMode(!isDarkMode)} 
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-        >
-            {isDarkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-slate-600" />}
-        </button>
+        <div className="flex items-center gap-2">
+            <div className="relative">
+                <Globe size={16} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none" />
+                <select 
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="pl-8 pr-2 py-1.5 rounded-full border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors w-10 sm:w-auto overflow-hidden whitespace-nowrap text-transparent sm:text-gray-700 sm:dark:text-gray-200"
+                    style={{ textOverflow: 'ellipsis' }}
+                >
+                    <option value="en" className="text-gray-800 dark:text-gray-200">English</option>
+                    <option value="zh" className="text-gray-800 dark:text-gray-200">中文</option>
+                    <option value="ja" className="text-gray-800 dark:text-gray-200">日本語</option>
+                    <option value="ko" className="text-gray-800 dark:text-gray-200">한국어</option>
+                </select>
+            </div>
+            
+            <button 
+                onClick={() => setIsDarkMode(!isDarkMode)} 
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            >
+                {isDarkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-slate-600" />}
+            </button>
+        </div>
       </header>
 
 
@@ -754,8 +779,8 @@ export default function App() {
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] animate-in slide-in-from-bottom-10 duration-300">
                 <div className="p-4 border-b dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-800 sticky top-0 z-10">
-                    <h3 className="font-bold text-lg dark:text-white">New Transaction</h3>
-                    <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-gray-700">Close</button>
+                    <h3 className="font-bold text-lg dark:text-white">{t('newTransaction')}</h3>
+                    <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-gray-700">{t('close')}</button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     
@@ -766,20 +791,20 @@ export default function App() {
                             onClick={() => setType('expense')}
                             className={`py-2 rounded-lg font-medium text-sm transition-all ${type === 'expense' ? 'bg-white dark:bg-slate-600 shadow text-rose-600' : 'text-gray-500 dark:text-gray-400'}`}
                         >
-                            Expense
+                            {t('expense')}
                         </button>
                         <button 
                             type="button" 
                             onClick={() => setType('income')}
                             className={`py-2 rounded-lg font-medium text-sm transition-all ${type === 'income' ? 'bg-white dark:bg-slate-600 shadow text-emerald-600' : 'text-gray-500 dark:text-gray-400'}`}
                         >
-                            Income
+                            {t('income')}
                         </button>
                     </div>
 
                     {/* Amount Input with Calculator Icon */}
                     <div>
-                        <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Amount</label>
+                        <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">{t('amount')}</label>
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">$</span>
                             <input 
@@ -793,12 +818,12 @@ export default function App() {
                             />
                             <Calculator className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">Supports math (e.g., 50+20)</p>
+                        <p className="text-xs text-gray-400 mt-1">{t('supportsMath')}</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Date</label>
+                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">{t('date')}</label>
                             <input 
                                 type="date"
                                 value={date}
@@ -807,7 +832,7 @@ export default function App() {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Category</label>
+                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">{t('category')}</label>
                             {isCustomCategory ? (
                                 <div className="flex gap-2 w-full">
                                     <input 
@@ -854,7 +879,7 @@ export default function App() {
                     </div>
 
                     <div>
-                         <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Note (Optional)</label>
+                         <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">{t('note')}</label>
                          <input 
                             type="text" 
                             value={note}
@@ -865,7 +890,7 @@ export default function App() {
                     </div>
 
                     <Button type="submit" className="w-full py-3 text-lg">
-                        Save Transaction
+                        {t('saveTransaction')}
                     </Button>
                 </form>
             </div>
@@ -876,14 +901,14 @@ export default function App() {
       {deleteTxId !== null && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-200">
-                <h3 className="font-bold text-lg dark:text-white mb-2">Delete Transaction?</h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">Are you sure you want to remove this transaction? This action cannot be undone.</p>
+                <h3 className="font-bold text-lg dark:text-white mb-2">{t('deleteTitle')}</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">{t('deleteMessage')}</p>
                 <div className="flex gap-4">
                     <Button variant="secondary" onClick={() => setDeleteTxId(null)} className="flex-1">
-                        Cancel
+                        {t('cancel')}
                     </Button>
                     <Button variant="danger" onClick={confirmMobileDelete} className="flex-1">
-                        Delete
+                        {t('delete')}
                     </Button>
                 </div>
             </div>

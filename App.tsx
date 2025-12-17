@@ -133,6 +133,12 @@ export default function App() {
     fetchYearlyStats(new Date().getFullYear().toString());
   }, []);
 
+  // Update categories based on transactions
+  useEffect(() => {
+    const uniqueCategories = Array.from(new Set([...INITIAL_CATEGORIES, ...transactions.map(t => t.category)]));
+    setCategories(uniqueCategories);
+  }, [transactions]);
+
   // Stats Calculation
   const stats: DashboardStats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];

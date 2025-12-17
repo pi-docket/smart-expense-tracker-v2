@@ -297,30 +297,32 @@ export default function App() {
 
   // --- Views ---
 
+  const dateFilterSection = (
+    <Card className="flex flex-col md:flex-row gap-4 items-center justify-between p-3 mb-6">
+        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <Calendar size={20} />
+            <span className="font-medium">Date Range</span>
+        </div>
+        <div className="flex gap-2 w-full md:w-auto">
+            <input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="self-center text-gray-400">-</span>
+            <input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
+            />
+        </div>
+    </Card>
+  );
+
   const dashboardView = (
     <div className="space-y-6 pb-20">
-      {/* Date Filter */}
-      <Card className="flex flex-col md:flex-row gap-4 items-center justify-between p-3">
-          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-              <Calendar size={20} />
-              <span className="font-medium">Date Range</span>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-              <input 
-                  type="date" 
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="self-center text-gray-400">-</span>
-              <input 
-                  type="date" 
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 dark:text-white text-sm w-full md:w-auto outline-none focus:ring-2 focus:ring-blue-500"
-              />
-          </div>
-      </Card>
 
       {/* Header Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -585,7 +587,7 @@ export default function App() {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                    {transactions.map(t => (
+                    {filteredTransactions.map(t => (
                         <tr key={t.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                             <td className="p-4 text-sm text-gray-600 dark:text-gray-300">{t.date}</td>
                             <td className="p-4">
@@ -663,6 +665,7 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-5xl mx-auto w-full p-4 lg:p-6">
+        {dateFilterSection}
         {activeTab === 'dashboard' ? dashboardView : transactionsView}
       </main>
 

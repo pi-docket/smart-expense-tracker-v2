@@ -32,3 +32,4 @@ venv
 env
 *.db
 database.py
+

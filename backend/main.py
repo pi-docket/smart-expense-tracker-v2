@@ -4,11 +4,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
+from fastapi import Header
+import os
 
 import models
 import database
 
-# Create tables
+# Create tables in the global database (for users)
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI()
@@ -44,13 +46,65 @@ class YearlyStats(BaseModel):
     most_frequent_day: Optional[Dict[str, Any]] = None
     highest_category: Optional[Dict[str, Any]] = None
 
+class UserAuth(BaseModel):
+    username: str
+    password: str
+
 # Dependency
-def get_db():
+def get_db(x_username: Optional[str] = Header(None)):
+    if not x_username:
+        # Fallback to default DB if no username provided (for public/un-logged in users)
+        db = database.SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+        return
+
+    # Use the user's specific database
+    session_factory = database.get_session_local(x_username)
+    
+    # Ensure tables exist in the user's DB
+    user_engine = database.get_engine(x_username)
+    models.Base.metadata.create_all(bind=user_engine)
+    
+    db = session_factory()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Dependency for global DB (users)
+def get_global_db():
     db = database.SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+@app.post("/register")
+def register(auth: UserAuth, db: Session = Depends(get_global_db)):
+    # Check if user exists
+    existing_user = db.query(models.User).filter(models.User.username == auth.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    new_user = models.User(username=auth.username, password=auth.password)
+    db.add(new_user)
+    db.commit()
+    
+    # Initialize the user's specific database
+    user_engine = database.get_engine(auth.username)
+    models.Base.metadata.create_all(bind=user_engine)
+    
+    return {"message": "User registered successfully"}
+
+@app.post("/login")
+def login(auth: UserAuth, db: Session = Depends(get_global_db)):
+    user = db.query(models.User).filter(models.User.username == auth.username, models.User.password == auth.password).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    return {"username": user.username, "message": "Login successful"}
 
 @app.get("/transactions/", response_model=List[Transaction])
 def read_transactions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

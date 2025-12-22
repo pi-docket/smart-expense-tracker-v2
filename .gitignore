@@ -32,6 +32,8 @@ __pycache__/
 venv
 env
 *.db
-database.py
+# database.py is now tracked
+# database.py
+
 
 *.bat

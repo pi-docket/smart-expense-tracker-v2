@@ -63,7 +63,16 @@ export const TRANSLATIONS = {
     cat_Shopping: 'Shopping',
     cat_Health: 'Health',
     cat_Other: 'Other',
-    cat_NewCategory: '+ New Category...'
+    cat_NewCategory: '+ New Category...',
+    login: 'Login',
+    logout: 'Logout',
+    register: 'Register',
+    username: 'Username',
+    password: 'Password',
+    switchRegister: 'Don\'t have an account? Register',
+    switchLogin: 'Already have an account? Login',
+    loginSuccess: 'Login successful!',
+    registerSuccess: 'Registration successful! Please login.',
   },
   zh: {
     dashboard: '儀表板',
@@ -128,7 +137,16 @@ export const TRANSLATIONS = {
     cat_Shopping: '購物',
     cat_Health: '醫療',
     cat_Other: '其他',
-    cat_NewCategory: '+ 新增類別...'
+    cat_NewCategory: '+ 新增類別...',
+    login: '登入',
+    logout: '登出',
+    register: '註冊',
+    username: '使用者帳號',
+    password: '密碼',
+    switchRegister: '還沒有帳號？點此註冊',
+    switchLogin: '已有帳號？點此登入',
+    loginSuccess: '登入成功！',
+    registerSuccess: '註冊成功！請登入。',
   },
   ja: {
     dashboard: 'ダッシュボード',
@@ -193,7 +211,16 @@ export const TRANSLATIONS = {
     cat_Shopping: '買い物',
     cat_Health: '健康',
     cat_Other: 'その他',
-    cat_NewCategory: '+ 新しいカテゴリ...'
+    cat_NewCategory: '+ 新しいカテゴリ...',
+    login: 'ログイン',
+    logout: 'ログアウト',
+    register: '新規登録',
+    username: 'ユーザー名',
+    password: 'パスワード',
+    switchRegister: 'アカウントをお持ちでない方はこちら',
+    switchLogin: 'アカウントをお持ちの方はこちら',
+    loginSuccess: 'ログインに成功しました！',
+    registerSuccess: '登録が完了しました！ログインしてください。',
   },
   ko: {
     dashboard: '대시보드',
@@ -258,8 +285,17 @@ export const TRANSLATIONS = {
     cat_Shopping: '쇼핑',
     cat_Health: '의료',
     cat_Other: '기타',
-    cat_NewCategory: '+ 새 카테고리...'
-  }
+    cat_NewCategory: '+ 새 카테고리...',
+    login: '로그인',
+    logout: '로그아웃',
+    register: '회원가입',
+    username: '아이디',
+    password: '비밀번호',
+    switchRegister: '계정이 없으신가요? 회원가입',
+    switchLogin: '이미 계정이 있으신가요? 로그인',
+    loginSuccess: '로그인 성공!',
+    registerSuccess: '회원가입 성공! 로그인해 주세요.',
+  },
 };
 
 export type Language = keyof typeof TRANSLATIONS;

@@ -116,6 +116,17 @@ export default function App() {
   const ITEMS_PER_PAGE = 5;
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  // Auth State
+  const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('currentUser'));
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [authUsername, setAuthUsername] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+
+  const authHeaders = useMemo(() => {
+    return currentUser ? { 'X-Username': currentUser } : {};
+  }, [currentUser]);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
@@ -145,7 +156,9 @@ export default function App() {
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/transactions/`);
+      const res = await fetch(`${API_URL}/transactions/`, {
+        headers: { ...authHeaders }
+      });
       if (!res.ok) throw new Error('Failed to connect to backend');
       const data = await res.json();
       setTransactions(data.sort((a: Transaction, b: Transaction) => b.date.localeCompare(a.date) || b.id - a.id));
@@ -159,7 +172,9 @@ export default function App() {
 
   const fetchYearlyStats = async (year: string) => {
       try {
-          const res = await fetch(`${API_URL}/stats/year/${year}`);
+          const res = await fetch(`${API_URL}/stats/year/${year}`, {
+            headers: { ...authHeaders }
+          });
           if (res.ok) {
               const data = await res.json();
               setYearlyStats(data);
@@ -173,7 +188,7 @@ export default function App() {
     fetchTransactions();
     // Default to current year or extracted year from startDate if applicable
     fetchYearlyStats(new Date().getFullYear().toString());
-  }, []);
+  }, [currentUser]); // Refetch when user changes
 
   // Update categories based on transactions
   useEffect(() => {
@@ -267,7 +282,10 @@ export default function App() {
     try {
       const res = await fetch(`${API_URL}/transactions/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...authHeaders
+        },
         body: JSON.stringify(newTx)
       });
       if (res.ok) {
@@ -289,7 +307,10 @@ export default function App() {
 
   const performDelete = async (id: number) => {
     try {
-      const res = await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/transactions/${id}`, { 
+        method: 'DELETE',
+        headers: { ...authHeaders }
+      });
       if (res.ok) await fetchTransactions();
     } catch (err) {
       setTransactions(transactions.filter(t => t.id !== id));
@@ -335,6 +356,42 @@ export default function App() {
           await performDelete(deleteTxId);
           setDeleteTxId(null);
       }
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const endpoint = isRegistering ? '/register' : '/login';
+    try {
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: authUsername, password: authPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (isRegistering) {
+            alert(t('registerSuccess'));
+            setIsRegistering(false);
+        } else {
+            setCurrentUser(data.username);
+            localStorage.setItem('currentUser', data.username);
+            setShowAuthModal(false);
+            setAuthUsername('');
+            setAuthPassword('');
+            alert(t('loginSuccess'));
+        }
+      } else {
+        alert(data.detail || 'Authentication failed');
+      }
+    } catch (err) {
+      alert('Failed to connect to server');
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('currentUser');
+    setTransactions([]);
   };
 
   // --- Views ---
@@ -850,6 +907,21 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
+            {currentUser ? (
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:block text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {currentUser}
+                </span>
+                <Button variant="ghost" className="px-3" onClick={handleLogout}>
+                   {t('logout')}
+                </Button>
+              </div>
+            ) : (
+              <Button variant="primary" className="px-4 py-1.5 text-sm" onClick={() => { setIsRegistering(false); setShowAuthModal(true); }}>
+                {t('login')}
+              </Button>
+            )}
+
             <div className="relative">
                 <button 
                     onClick={() => setShowLangMenu(!showLangMenu)}
@@ -1055,6 +1127,76 @@ export default function App() {
                     </Button>
                 </div>
             </div>
+        </div>
+      )}
+
+      {/* Auth Modal (Login/Register) */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="relative p-8">
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                className="absolute right-6 top-6 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                title={t('close')}
+              >
+                <X size={24} />
+              </button>
+              
+              <div className="mb-8 text-center">
+                <div className="inline-flex p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl text-blue-600 dark:text-blue-400 mb-4">
+                  <Wallet size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {isRegistering ? t('register') : t('login')}
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">
+                  {isRegistering ? 'Create your personal account' : 'Welcome back to Flowing Gold'}
+                </p>
+              </div>
+
+              <form onSubmit={handleAuth} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 px-1">
+                    {t('username')}
+                  </label>
+                  <input 
+                    type="text"
+                    required
+                    value={authUsername}
+                    onChange={(e) => setAuthUsername(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    placeholder="Enter username"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 px-1">
+                    {t('password')}
+                  </label>
+                  <input 
+                    type="password"
+                    required
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <Button type="submit" className="w-full py-3.5 text-lg font-bold shadow-lg shadow-blue-200 dark:shadow-none mt-4">
+                  {isRegistering ? t('register') : t('login')}
+                </Button>
+              </form>
+
+              <div className="mt-8 text-center">
+                <button 
+                  onClick={() => setIsRegistering(!isRegistering)}
+                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-all"
+                >
+                  {isRegistering ? t('switchLogin') : t('switchRegister')}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

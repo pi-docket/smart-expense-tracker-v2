@@ -1,0 +1,62 @@
+@echo off
+cd /d "%~dp0"
+set "PROJECT_NAME=LocalFlow Expense Tracker"
+
+echo Starting %PROJECT_NAME%...
+echo.
+
+:: ==============================
+:: 1. Start Backend (Python/Uvicorn)
+:: ==============================
+if exist backend (
+    echo [Backend] Found backend folder. Starting Uvicorn...
+    start "LocalFlow Backend" cmd /k "cd backend && python -m uvicorn main:app --reload --host 0.0.0.0"
+) else (
+    echo [Error] 'backend' folder not found!
+    pause
+    exit
+)
+
+:: Wait for backend to initialize
+timeout /t 3 /nobreak >nul
+
+:: ==============================
+:: 2. Start Frontend (Node.js)
+:: ==============================
+:: 假設你的前端資料夾名稱是 frontend (如果是其他名稱，請修改下方括號內)
+if exist frontend (
+    echo [Frontend] Found frontend folder. Starting Vite...
+    start "LocalFlow Frontend" cmd /k "cd frontend && npm run dev -- --host"
+) else (
+    :: 如果找不到 frontend 資料夾，嘗試在根目錄執行 (相容你原本的寫法)
+    echo [Frontend] 'frontend' folder not found, trying root directory...
+    start "LocalFlow Frontend" cmd /k "npm run dev -- --host"
+)
+
+:: ==============================
+:: 3. Get Local IP Address
+:: ==============================
+:: 這段神奇的指令會抓取你的 IPv4 位址
+for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr "IPv4"') do set IP=%%a
+:: 去除空白
+set IP=%IP: =%
+
+:: ==============================
+:: 4. Open Browser & Info
+:: ==============================
+timeout /t 3 /nobreak >nul
+start http://localhost:3000
+
+cls
+echo ========================================================
+echo   %PROJECT_NAME% is running!
+echo ========================================================
+echo.
+echo   [Local Access]   http://localhost:3000
+echo   [Mobile Access]  http://%IP%:3000
+echo.
+echo   * Backend and Frontend are running in separate windows.
+echo   * Close those windows to stop the servers.
+echo ========================================================
+echo.
+pause

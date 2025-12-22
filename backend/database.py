@@ -16,7 +16,10 @@ SQLALCHEMY_DATABASE_URL = f"sqlite:///{default_db_path}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_session_local(username: str):
+def get_engine(username: str):
     url = get_db_url(username)
-    engine = create_engine(url, connect_args={"check_same_thread": False})
+    return create_engine(url, connect_args={"check_same_thread": False})
+
+def get_session_local(username: str):
+    engine = get_engine(username)
     return sessionmaker(autocommit=False, autoflush=False, bind=engine)

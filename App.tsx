@@ -615,7 +615,7 @@ export default function App() {
       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:pb-0">
         <Card className="h-80 flex flex-col min-w-full lg:min-w-0 snap-center">
             <h3 className="font-semibold mb-4 text-gray-700 dark:text-gray-200">{t('expensesByCategory')}</h3>
-            <div className="flex-1 min-h-0 flex items-center pr-4">
+            <div className="flex-1 min-h-0 flex items-center pr-4 min-w-0">
                 {/* Custom Legend - Left Side */}
                 <div className="md:w-2/5 min-w-[120px] flex flex-col justify-start gap-3 pl-2 overflow-y-auto max-h-full scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-slate-600">
                     {categoryData.map((entry, index) => (
@@ -634,7 +634,7 @@ export default function App() {
                 </div>
 
                 {/* Pie Chart - Right Side */}
-                <div className="flex-1 h-full relative">
+                <div className="flex-1 h-full relative" style={{ minWidth: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
                             <Pie
@@ -675,7 +675,7 @@ export default function App() {
                     {categories.filter(c => c !== 'Salary').map(c => <option key={c} value={c}>{tCategory(c)}</option>)}
                 </select>
             </div>
-            <div className="flex-1 min-h-0 bg-gradient-to-t from-white/0 to-white/0 rounded-xl overflow-hidden">
+            <div className="flex-1 min-h-0 bg-gradient-to-t from-white/0 to-white/0 rounded-xl overflow-hidden" style={{ minWidth: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={weeklyData} margin={{ bottom: 10, left: -20, right: 10 }}>
                         <defs>

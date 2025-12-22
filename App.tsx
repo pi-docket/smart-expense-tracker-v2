@@ -7,7 +7,7 @@ import {
   Plus, Trash2, ArrowUpCircle, ArrowDownCircle, 
   LayoutDashboard, List, Wallet, Calculator,
   ChevronLeft, ChevronRight, Moon, Sun, Download, Calendar, X,
-  TrendingUp, Activity, Tag, Globe
+  TrendingUp, Activity, Tag, Globe, User
 } from 'lucide-react';
 import { Transaction, TransactionCreate, TransactionType, DashboardStats, YearlyStats } from './types';
 import { TRANSLATIONS, Language } from './translations';
@@ -909,17 +909,25 @@ export default function App() {
         <div className="flex items-center gap-2">
             {currentUser ? (
               <div className="flex items-center gap-2">
-                <span className="hidden sm:block text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {currentUser}
-                </span>
-                <Button variant="ghost" className="px-3" onClick={handleLogout}>
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-slate-800 rounded-full">
+                  <User size={16} className="text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {currentUser}
+                  </span>
+                </div>
+                <Button variant="ghost" className="px-3 !text-rose-600 hover:!text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20 !dark:text-rose-400" onClick={handleLogout}>
                    {t('logout')}
                 </Button>
               </div>
             ) : (
-              <Button variant="primary" className="px-4 py-1.5 text-sm" onClick={() => { setIsRegistering(false); setShowAuthModal(true); }}>
-                {t('login')}
-              </Button>
+              <button 
+                onClick={() => { setIsRegistering(false); setShowAuthModal(true); }}
+                className="p-2 sm:px-4 sm:py-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full sm:rounded-lg transition-colors flex items-center gap-2 group"
+                title={t('login')}
+              >
+                <User size={24} className="sm:size-[18px]" />
+                <span className="hidden sm:inline text-sm font-bold">{t('login')}</span>
+              </button>
             )}
 
             <div className="relative">
@@ -1182,7 +1190,14 @@ export default function App() {
                     placeholder="••••••••"
                   />
                 </div>
-                <Button type="submit" className="w-full py-3.5 text-lg font-bold shadow-lg shadow-blue-200 dark:shadow-none mt-4">
+                <Button 
+                  type="submit" 
+                  className={`w-full py-3.5 text-lg font-bold shadow-lg mt-4 transition-all ${
+                    isRegistering 
+                    ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200 dark:shadow-none text-white' 
+                    : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200 dark:shadow-none'
+                  }`}
+                >
                   {isRegistering ? t('register') : t('login')}
                 </Button>
               </form>
@@ -1190,9 +1205,14 @@ export default function App() {
               <div className="mt-8 text-center">
                 <button 
                   onClick={() => setIsRegistering(!isRegistering)}
-                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-all"
+                  className="text-sm font-medium transition-all"
                 >
-                  {isRegistering ? t('switchLogin') : t('switchRegister')}
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {isRegistering ? t('switchLoginPrefix') : t('switchRegisterPrefix')}
+                  </span>
+                  <span className={`${isRegistering ? 'text-blue-600 hover:text-blue-700' : 'text-rose-600 hover:text-rose-700'} hover:underline ml-1`}>
+                    {isRegistering ? t('switchLoginAction') : t('switchRegisterAction')}
+                  </span>
                 </button>
               </div>
             </div>

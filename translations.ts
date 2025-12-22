@@ -75,6 +75,9 @@ export const TRANSLATIONS = {
     switchLoginAction: 'Login',
     loginSuccess: 'Login successful!',
     registerSuccess: 'Registration successful! Please login.',
+    authFailed: 'Invalid username or password',
+    connectError: 'Failed to connect to server',
+    usernameExists: 'Username already exists',
   },
   zh: {
     dashboard: '儀表板',
@@ -151,6 +154,9 @@ export const TRANSLATIONS = {
     switchLoginAction: '登入',
     loginSuccess: '登入成功！',
     registerSuccess: '註冊成功！請登入。',
+    authFailed: '帳號或密碼錯誤',
+    connectError: '無法連線至伺服器',
+    usernameExists: '此帳號已存在',
   },
   ja: {
     dashboard: 'ダッシュボード',
@@ -227,6 +233,9 @@ export const TRANSLATIONS = {
     switchLoginAction: 'ログイン',
     loginSuccess: 'ログインに成功しました！',
     registerSuccess: '登録が完了しました！ログインしてください。',
+    authFailed: 'ユーザー名またはパスワードが正しくありません',
+    connectError: 'サーバーへの接続に失敗しました',
+    usernameExists: 'このユーザー名は既に使用されています',
   },
   ko: {
     dashboard: '대시보드',
@@ -303,6 +312,9 @@ export const TRANSLATIONS = {
     switchLoginAction: '로그인',
     loginSuccess: '로그인 성공!',
     registerSuccess: '회원가입 성공! 로그인해 주세요.',
+    authFailed: '아이디 또는 비밀번호가 잘못되었습니다',
+    connectError: '서버 연결 실패',
+    usernameExists: '이미 존재하는 아이디입니다',
   },
 };
 

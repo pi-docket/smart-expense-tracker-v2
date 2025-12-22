@@ -7,7 +7,7 @@ import {
   Plus, Trash2, ArrowUpCircle, ArrowDownCircle, 
   LayoutDashboard, List, Wallet, Calculator,
   ChevronLeft, ChevronRight, Moon, Sun, Download, Calendar, X,
-  TrendingUp, Activity, Tag, Globe, User
+  TrendingUp, Activity, Tag, Globe, User, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { Transaction, TransactionCreate, TransactionType, DashboardStats, YearlyStats } from './types';
 import { TRANSLATIONS, Language } from './translations';
@@ -126,6 +126,14 @@ export default function App() {
   const authHeaders = useMemo(() => {
     return currentUser ? { 'X-Username': currentUser } : {};
   }, [currentUser]);
+
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -370,7 +378,7 @@ export default function App() {
       const data = await res.json();
       if (res.ok) {
         if (isRegistering) {
-            alert(t('registerSuccess'));
+            showToast(t('registerSuccess'), 'success');
             setIsRegistering(false);
         } else {
             setCurrentUser(data.username);
@@ -378,13 +386,18 @@ export default function App() {
             setShowAuthModal(false);
             setAuthUsername('');
             setAuthPassword('');
-            alert(t('loginSuccess'));
+            showToast(t('loginSuccess'), 'success');
         }
       } else {
-        alert(data.detail || 'Authentication failed');
+        // Map common backend errors to translated keys
+        let errorKey: any = 'authFailed';
+        if (data.detail === 'Username already exists') errorKey = 'usernameExists';
+        if (data.detail === 'Invalid username or password') errorKey = 'authFailed';
+        
+        showToast(t(errorKey), 'error');
       }
     } catch (err) {
-      alert('Failed to connect to server');
+      showToast(t('connectError'), 'error');
     }
   };
 
@@ -1216,6 +1229,20 @@ export default function App() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[110] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className={`px-6 py-3 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-3 border ${
+            toast.type === 'success' 
+            ? 'bg-emerald-500/90 text-white border-emerald-400' 
+            : 'bg-rose-500/90 text-white border-rose-400'
+          }`}>
+            {toast.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+            <span className="font-bold tracking-tight">{toast.message}</span>
           </div>
         </div>
       )}

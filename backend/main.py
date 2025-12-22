@@ -10,8 +10,9 @@ import os
 import models
 import database
 
-# Create tables in the global database (for users)
-models.Base.metadata.create_all(bind=database.engine)
+# Create tables in the global database (for users) explicitly on startup
+# We treats 'expenses' as the default/global db name
+database.get_user_engine("expenses")
 
 app = FastAPI()
 
@@ -52,23 +53,20 @@ class UserAuth(BaseModel):
 
 # Dependency
 def get_db(x_username: Optional[str] = Header(None)):
-    if not x_username:
-        # Fallback to default DB if no username provided (for public/un-logged in users)
-        db = database.SessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-        return
+    # Security check: Validate username format to prevent path traversal or injection
+    if x_username and not x_username.isalnum():
+        raise HTTPException(status_code=400, detail="Invalid username header format")
 
-    # Use the user's specific database
-    session_factory = database.get_session_local(x_username)
+    # Determine which database to use
+    # If no header, fallback to 'expenses' (public/default)
+    current_db_name = x_username if x_username else "expenses"
     
-    # Ensure tables exist in the user's DB
-    user_engine = database.get_engine(x_username)
-    models.Base.metadata.create_all(bind=user_engine)
+    # Get engine (this also ensures tables exist)
+    engine = database.get_user_engine(current_db_name)
     
-    db = session_factory()
+    # Create session
+    SessionLocal = database.sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = SessionLocal()
     try:
         yield db
     finally:
@@ -76,7 +74,10 @@ def get_db(x_username: Optional[str] = Header(None)):
 
 # Dependency for global DB (users)
 def get_global_db():
-    db = database.SessionLocal()
+    # Always use 'expenses' db for user auth stuff
+    engine = database.get_user_engine("expenses")
+    SessionLocal = database.sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = SessionLocal()
     try:
         yield db
     finally:
@@ -84,6 +85,10 @@ def get_global_db():
 
 @app.post("/register")
 def register(auth: UserAuth, db: Session = Depends(get_global_db)):
+    # Validate username
+    if not auth.username.isalnum():
+        raise HTTPException(status_code=400, detail="Username must contain only letters and numbers")
+        
     # Check if user exists
     existing_user = db.query(models.User).filter(models.User.username == auth.username).first()
     if existing_user:
@@ -94,13 +99,17 @@ def register(auth: UserAuth, db: Session = Depends(get_global_db)):
     db.commit()
     
     # Initialize the user's specific database
-    user_engine = database.get_engine(auth.username)
-    models.Base.metadata.create_all(bind=user_engine)
+    # get_user_engine automatically runs create_all, so just calling it is enough
+    database.get_user_engine(auth.username)
     
     return {"message": "User registered successfully"}
 
 @app.post("/login")
 def login(auth: UserAuth, db: Session = Depends(get_global_db)):
+    # Validate username format
+    if not auth.username.isalnum():
+         raise HTTPException(status_code=400, detail="Username must contain only letters and numbers")
+
     user = db.query(models.User).filter(models.User.username == auth.username, models.User.password == auth.password).first()
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")

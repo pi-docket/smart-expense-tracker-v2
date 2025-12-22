@@ -78,6 +78,7 @@ export const TRANSLATIONS = {
     authFailed: 'Invalid username or password',
     connectError: 'Failed to connect to server',
     usernameExists: 'Username already exists',
+    usernameInvalid: 'Username contains illegal characters',
   },
   zh: {
     dashboard: '儀表板',
@@ -157,6 +158,7 @@ export const TRANSLATIONS = {
     authFailed: '帳號或密碼錯誤',
     connectError: '無法連線至伺服器',
     usernameExists: '此帳號已存在',
+    usernameInvalid: '帳號包含非法字元',
   },
   ja: {
     dashboard: 'ダッシュボード',
@@ -236,6 +238,7 @@ export const TRANSLATIONS = {
     authFailed: 'ユーザー名またはパスワードが正しくありません',
     connectError: 'サーバーへの接続に失敗しました',
     usernameExists: 'このユーザー名は既に使用されています',
+    usernameInvalid: 'ユーザー名に無効な文字が含まれています',
   },
   ko: {
     dashboard: '대시보드',
@@ -315,6 +318,7 @@ export const TRANSLATIONS = {
     authFailed: '아이디 또는 비밀번호가 잘못되었습니다',
     connectError: '서버 연결 실패',
     usernameExists: '이미 존재하는 아이디입니다',
+    usernameInvalid: '아이디에 사용할 수 없는 문자가 포함되어 있습니다',
   },
 };
 

@@ -393,6 +393,10 @@ export default function App() {
         let errorKey: any = 'authFailed';
         if (data.detail === 'Username already exists') errorKey = 'usernameExists';
         if (data.detail === 'Invalid username or password') errorKey = 'authFailed';
+        if (data.detail === 'Username must contain only letters and numbers' || 
+            data.detail === 'Invalid username header format') {
+            errorKey = 'usernameInvalid';
+        }
         
         showToast(t(errorKey), 'error');
       }

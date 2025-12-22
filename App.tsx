@@ -569,7 +569,7 @@ export default function App() {
                                          <p className="text-rose-600 dark:text-rose-400 font-semibold">${yearlyStats.highest_spending_day.amount.toFixed(2)}</p>
                                      </>
                                  ) : (
-                                     <p className="text-sm text-gray-500">{t('noData')}</p>
+                                     <p className="text-sm text-gray-500 italic">{t('noData')}</p>
                                  )}
                              </div>
                          </div>
@@ -590,7 +590,7 @@ export default function App() {
                                           <p className="text-blue-600 dark:text-blue-400 font-semibold">{yearlyStats.most_frequent_day.count} {t('items')}</p>
                                       </>
                                   ) : (
-                                       <p className="text-sm text-gray-500">{t('noData')}</p>
+                                       <p className="text-sm text-gray-500 italic">{t('noData')}</p>
                                   )}
                               </div>
                           </div>
@@ -611,7 +611,7 @@ export default function App() {
                                          <p className="text-purple-600 dark:text-purple-400 font-semibold">${yearlyStats.highest_category.amount.toFixed(2)}</p>
                                      </>
                                  ) : (
-                                     <p className="text-sm text-gray-500">{t('noData')}</p>
+                                     <p className="text-sm text-gray-500 italic">{t('noData')}</p>
                                  )}
                              </div>
                          </div>
@@ -647,32 +647,38 @@ export default function App() {
                 </div>
 
                 {/* Pie Chart - Right Side */}
-                <div className="flex-1 h-full relative" style={{ minWidth: 0 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
-                            <Pie
-                                data={categoryData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={isMobile ? 60 : 75}
-                                outerRadius={isMobile ? 80 : 100}
-                                paddingAngle={5}
-                                startAngle={90}
-                                endAngle={-270}
-                                dataKey="value"
-                                nameKey="name"
-                                style={{ outline: 'none' }}
-                            >
-                                {categoryData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[categories.indexOf(entry.name) % COLORS.length] || '#CCCCCC'} />
-                                ))}
-                            </Pie>
-                            <RechartsTooltip 
-                                formatter={(value: number, name: string) => [value, tCategory(name)]} 
-                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', outline: 'none' }}
-                            />
-                        </PieChart>
-                    </ResponsiveContainer>
+                <div className="flex-1 h-full relative" style={{ minWidth: 0, minHeight: '200px' }}>
+                    {categoryData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+                                <Pie
+                                    data={categoryData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={isMobile ? 60 : 75}
+                                    outerRadius={isMobile ? 80 : 100}
+                                    paddingAngle={5}
+                                    startAngle={90}
+                                    endAngle={-270}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    style={{ outline: 'none' }}
+                                >
+                                    {categoryData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[categories.indexOf(entry.name) % COLORS.length] || '#CCCCCC'} />
+                                    ))}
+                                </Pie>
+                                <RechartsTooltip 
+                                    formatter={(value: number, name: string) => [value, tCategory(name)]} 
+                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', outline: 'none' }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400 text-sm italic">
+                            {t('noData')}
+                        </div>
+                    )}
                 </div>
             </div>
         </Card>
@@ -688,32 +694,38 @@ export default function App() {
                     {categories.filter(c => c !== 'Salary').map(c => <option key={c} value={c}>{tCategory(c)}</option>)}
                 </select>
             </div>
-            <div className="flex-1 min-h-0 bg-gradient-to-t from-white/0 to-white/0 rounded-xl overflow-hidden" style={{ minWidth: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={weeklyData} margin={{ bottom: 10, left: -20, right: 10 }}>
-                        <defs>
-                            <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={EXPENSE_COLOR} stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor={EXPENSE_COLOR} stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                        <XAxis dataKey="date" tick={{fontSize: 10}} tickFormatter={(val) => val.slice(5)} />
-                        <YAxis tick={{fontSize: 10}} />
-                        <RechartsTooltip 
-                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', outline: 'none' }}
-                            labelStyle={{ color: '#1f2937' }}
-                        />
-                        <Area 
-                            type="monotone" 
-                            dataKey="amount" 
-                            stroke={EXPENSE_COLOR} 
-                            fillOpacity={1} 
-                            fill="url(#colorAmount)" 
-                            strokeWidth={3}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+            <div className="flex-1 min-h-0 bg-gradient-to-t from-white/0 to-white/0 rounded-xl overflow-hidden" style={{ minWidth: 0, minHeight: '200px' }}>
+                {weeklyData.some(d => d.amount > 0) ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={weeklyData} margin={{ bottom: 10, left: -20, right: 10 }}>
+                            <defs>
+                                <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={EXPENSE_COLOR} stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor={EXPENSE_COLOR} stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                            <XAxis dataKey="date" tick={{fontSize: 10}} tickFormatter={(val) => val.slice(5)} />
+                            <YAxis tick={{fontSize: 10}} />
+                            <RechartsTooltip 
+                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', outline: 'none' }}
+                                labelStyle={{ color: '#1f2937' }}
+                            />
+                            <Area 
+                                type="monotone" 
+                                dataKey="amount" 
+                                stroke={EXPENSE_COLOR} 
+                                fillOpacity={1} 
+                                fill="url(#colorAmount)" 
+                                strokeWidth={3}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                ) : (
+                    <div className="flex items-center justify-center h-full text-gray-400 text-sm italic">
+                        {t('noData')}
+                    </div>
+                )}
             </div>
         </Card>
       </div>
@@ -722,7 +734,8 @@ export default function App() {
       <div className="md:hidden">
           <h3 className="font-semibold mb-2 text-gray-700 dark:text-gray-300 ml-1">{t('recentActivity')}</h3>
           <div className="space-y-3">
-              {filteredTransactions.slice((recentPage - 1) * ITEMS_PER_PAGE, recentPage * ITEMS_PER_PAGE).map(t => (
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.slice((recentPage - 1) * ITEMS_PER_PAGE, recentPage * ITEMS_PER_PAGE).map(t => (
                   <Card 
                     key={t.id} 
                     className="flex justify-between items-center py-3 active:scale-[0.98] transition-transform select-none"
@@ -746,7 +759,12 @@ export default function App() {
                           {t.type === 'expense' ? '-' : '+'}${t.amount}
                       </span>
                   </Card>
-              ))}
+                ))
+              ) : (
+                <Card className="py-8 text-center text-gray-400 text-sm italic">
+                    {t('noData')}
+                </Card>
+              )}
           </div>
           {/* Pagination Controls */}
           {filteredTransactions.length > ITEMS_PER_PAGE && (
@@ -829,7 +847,7 @@ export default function App() {
                     ))}
                     {filteredTransactions.length === 0 && (
                         <tr>
-                            <td colSpan={5} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                            <td colSpan={5} className="p-8 text-center text-gray-500 dark:text-gray-400 italic">
                                 {t('noData')}
                             </td>
                         </tr>

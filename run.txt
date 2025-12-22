@@ -34,12 +34,18 @@ if exist frontend (
 )
 
 :: ==============================
-:: 3. Get Local IP Address
+:: 3. Get Network IPs
 :: ==============================
-:: 這段神奇的指令會抓取你的 IPv4 位址
-for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr "IPv4"') do set IP=%%a
-:: 去除空白
-set IP=%IP: =%
+echo [IP] Scanning network interfaces...
+set "IP_LIST_FILE=%TEMP%\localflow_ips.txt"
+set "PS_EXE=C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+
+if not exist "%PS_EXE%" (
+    echo [Error] PowerShell not found at %PS_EXE%
+    echo         Please ensure PowerShell is installed.
+) else (
+    "%PS_EXE%" -NoProfile -Command "Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notlike '*Loopback*' -and $_.InterfaceAlias -notlike '*vEthernet*' -and $_.InterfaceAlias -notlike '*WSL*' } | Sort-Object InterfaceAlias | ForEach-Object { '  ' + $_.InterfaceAlias + ': http://' + $_.IPAddress + ':3000' } | Out-File -FilePath '%IP_LIST_FILE%' -Encoding ASCII"
+)
 
 :: ==============================
 :: 4. Open Browser & Info
@@ -53,7 +59,15 @@ echo   %PROJECT_NAME% is running!
 echo ========================================================
 echo.
 echo   [Local Access]   http://localhost:3000
-echo   [Mobile Access]  http://%IP%:3000
+echo.
+echo   [Network Access - All Interfaces]:
+echo   ---------------------------------
+if exist "%IP_LIST_FILE%" (
+    type "%IP_LIST_FILE%"
+    del "%IP_LIST_FILE%"
+) else (
+    echo   No network interfaces found (or PowerShell missing)
+)
 echo.
 echo   * Backend and Frontend are running in separate windows.
 echo   * Close those windows to stop the servers.

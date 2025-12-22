@@ -2,39 +2,8 @@
 cd /d "%~dp0"
 set "PROJECT_NAME=LocalFlow Expense Tracker"
 
-echo Starting %PROJECT_NAME%...
-echo.
-
 :: ==============================
-:: 1. Start Backend (Python/Uvicorn)
-:: ==============================
-if exist backend (
-    echo [Backend] Found backend folder. Starting Uvicorn...
-    start "LocalFlow Backend" cmd /k "cd backend && python -m uvicorn main:app --reload --host 0.0.0.0"
-) else (
-    echo [Error] 'backend' folder not found!
-    pause
-    exit
-)
-
-:: Wait for backend to initialize
-timeout /t 3 /nobreak >nul
-
-:: ==============================
-:: 2. Start Frontend (Node.js)
-:: ==============================
-:: 假設你的前端資料夾名稱是 frontend (如果是其他名稱，請修改下方括號內)
-if exist frontend (
-    echo [Frontend] Found frontend folder. Starting Vite...
-    start "LocalFlow Frontend" cmd /k "cd frontend && npm run dev -- --host"
-) else (
-    :: 如果找不到 frontend 資料夾，嘗試在根目錄執行 (相容你原本的寫法)
-    echo [Frontend] 'frontend' folder not found, trying root directory...
-    start "LocalFlow Frontend" cmd /k "npm run dev -- --host"
-)
-
-:: ==============================
-:: 3. Get Network IPs
+:: 1. Get Network IPs
 :: ==============================
 echo [IP] Scanning network interfaces...
 set "IP_LIST_FILE=%TEMP%\localflow_ips.txt"
@@ -42,20 +11,16 @@ set "PS_EXE=C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
 
 if not exist "%PS_EXE%" (
     echo [Error] PowerShell not found at %PS_EXE%
-    echo         Please ensure PowerShell is installed.
 ) else (
     "%PS_EXE%" -NoProfile -Command "Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notlike '*Loopback*' -and $_.InterfaceAlias -notlike '*vEthernet*' -and $_.InterfaceAlias -notlike '*WSL*' } | Sort-Object InterfaceAlias | ForEach-Object { '  ' + $_.InterfaceAlias + ': http://' + $_.IPAddress + ':3000' } | Out-File -FilePath '%IP_LIST_FILE%' -Encoding ASCII"
 )
 
 :: ==============================
-:: 4. Open Browser & Info
+:: 2. Display Info
 :: ==============================
-timeout /t 3 /nobreak >nul
-start http://localhost:3000
-
 cls
 echo ========================================================
-echo   %PROJECT_NAME% is running!
+echo   %PROJECT_NAME%
 echo ========================================================
 echo.
 echo   [Local Access]   http://localhost:3000
@@ -66,11 +31,24 @@ if exist "%IP_LIST_FILE%" (
     type "%IP_LIST_FILE%"
     del "%IP_LIST_FILE%"
 ) else (
-    echo   No network interfaces found (or PowerShell missing)
+    echo   No network interfaces found
 )
 echo.
-echo   * Backend and Frontend are running in separate windows.
-echo   * Close those windows to stop the servers.
+echo ========================================================
+echo   Starting Backend and Frontend in unified view...
+echo   Press Ctrl+C to stop all servers.
 echo ========================================================
 echo.
-pause
+
+:: ==============================
+:: 3. Run Services (Unified Window)
+:: ==============================
+:: Checking for backend folder
+if not exist backend (
+    echo [Error] 'backend' folder not found!
+    pause
+    exit
+)
+
+:: Using npx concurrently to run both services in one window
+call npx -y concurrently --kill-others -n "BACKEND,FRONTEND" -c "bgBlue.bold,bgGreen.bold" "cd backend && python -m uvicorn main:app --reload --host 0.0.0.0" "cd frontend && npm run dev -- --host"

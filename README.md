@@ -1,23 +1,25 @@
 # Flowing Gold (流金) 💰
 
-**Flowing Gold** is a beautiful, modern, and privacy-focused personal expense tracker application. It empowers you to manage your finances locally with a stunning React frontend and a robust Python FastAPI backend.
+**Flowing Gold** is a beautiful, modern, and privacy-focused personal expense tracker application. It empowers you to manage your finances locally with a stunning React frontend and a robust Python FastAPI backend, now featuring **secure multi-user authentication**.
 
 ![Project Banner](https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=1000)
 *(Replace with actual screenshot)*
 
 ## ✨ Key Features
 
+*   **🔐 Secure Authentication**: Integrated Registration and Login system to keep your data protected.
+*   **👥 Multi-User Isolation**: Every user gets their own dedicated SQLite database (e.g., `username.db`), ensuring complete data privacy and isolation.
 *   **🌍 Multi-language Support**: Fully localized in **English**, **Traditional Chinese (繁體中文)**, **Japanese (日本語)**, and **Korean (한국어)**.
-*   **📊 Interactive Dashboard**: Visualize your finances with dynamic **Pie Charts** (Expenses by Category) and **Area Charts** (Consumption Trend).
-*   **📱 Responsive & Mobile-First**: A seamless experience across Desktop, Tablet, and Mobile devices. Includes touch-friendly interactions like swiping for charts.
-*   **🌗 Dark Mode**: Built-in toggle for Light and Dark themes to suit your preference.
-*   **📅 Advanced Filtering**: Analyze spending by custom date ranges or quick presets (Last Month, 3 Months, etc.).
+*   **📊 Interactive Dashboard**: Visualize your finances with dynamic **Pie Charts** (Expenses by Category) and **Area Charts** (Consumption Trend). Includes data-aware placeholders and smooth error handling.
+*   **📱 Responsive & Mobile-First**: A seamless experience across devices. The header automatically optimizes for mobile (icon-only modes), ensuring vital features are always reachable.
+*   **🌗 Dark Mode**: Built-in toggle for Light and Dark themes.
+*   **📅 Advanced Filtering**: Analyze spending by custom date ranges or quick presets.
 *   **📝 Transaction Management**:
     *   Easily add income and expenses with a built-in calculator (e.g., input `50+20`).
-    *   Paginated transaction list with custom rows per page (10, 20, 30, 50).
-    *   Delete records with safety confirmation.
-*   **📈 Yearly Statistics**: Deep insights into your highest spending days, most frequent transaction days, and top categories of the year.
-*   **🔒 Local & Private**: Your data stays on your machine, stored in a local SQLite database (`expenses.db`).
+    *   Paginated transaction list with custom rows per page.
+    *   Delete records with safety confirmation (Long-press delete on mobile).
+*   **📈 Yearly Statistics**: Deep insights into your highest spending days, most frequent transaction days, and top categories.
+*   **� Modern Notifications**: Custom-built **Toast Notification** system replacing browser alerts for a premium user experience.
 *   **📂 CSV Export**: Export your data anytime for external analysis.
 
 ## 🛠️ Tech Stack
@@ -27,12 +29,12 @@
     *   [Vite](https://vitejs.dev/) - Blazing fast build tool
     *   [Tailwind CSS](https://tailwindcss.com/) - Utility-first styling
     *   [Recharts](https://recharts.org/) - Data visualization
-    *   [Lucide React](https://lucide.dev/) - Beautiful icons
+    *   [Lucide React](https://lucide.dev/) - Premium iconography
 *   **Backend**:
     *   [Python](https://www.python.org/) (3.8+)
     *   [FastAPI](https://fastapi.tiangolo.com/) - Modern, high-performance web framework
     *   [SQLAlchemy](https://www.sqlalchemy.org/) - SQL Toolkit and ORM
-    *   [SQLite](https://www.sqlite.org/) - Lightweight disk-based database
+    *   [SQLite](https://www.sqlite.org/) - Lightweight, user-specific disk-based databases
 
 ---
 
@@ -65,19 +67,11 @@ Follow these steps to get a local copy up and running.
     npm install
     ```
 
-### Database Configuration (Optional)
+### 🗄️ Database Logic
 
-By default, the application uses `test.db` (which may contain generated test data) or `expenses.db`. Before running the app, you can choose which database to use:
-
-1.  Open `backend/database.py`.
-2.  Modify the `SQLALCHEMY_DATABASE_URL` line:
-    ```python
-    # To use a clean/production database:
-    SQLALCHEMY_DATABASE_URL = "sqlite:///./expenses.db"
-
-    # To use the test database with sample data:
-    SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-    ```
+The app manages databases dynamically:
+*   **`expenses.db`**: Stores the global user registry (usernames and passwords).
+*   **`{username}.db`**: Once logged in, a private database is automatically created for each user to store their transactions.
 
 ### ▶️ Running the Application
 
@@ -99,15 +93,15 @@ Open a second terminal and run:
 ```bash
 npm run dev
 ```
-*Open the link shown (typically `http://localhost:5173`) in your browser to start tracking!*
+*Open the link shown (typically `http://localhost:3000`) in your browser to start tracking!*
 
 ---
 
 ## 💡 Usage Tips
 
-*   **Calculator Input**: When adding a transaction, you can type math expressions directly into the amount field (e.g., typing `120*2` will save `240`).
-*   **Quick Category**: Select from default categories or type to create a temporary custom one (for current session view).
-*   **Switch Language**: Click the Globe icon 🌐 in the header to switch between EN, ZH, JA, and KO.
+*   **Multi-User**: Register a new account to see how the app creates a fresh, empty database just for you.
+*   **Calculator Input**: In the amount field, you can type expressions like `120*2` or `50+30-10`.
+*   **Mobile Experience**: On mobile devices, the login/user section collapses into a clean icon-only view. Long-press any transaction to trigger the delete prompt.
 
 ## 📄 License
 

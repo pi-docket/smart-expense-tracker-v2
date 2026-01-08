@@ -10,19 +10,19 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
         proxy: {
           '/transactions': {
-            target: 'http://127.0.0.1:8000',
+            target: 'http://127.0.0.1:8091',
             changeOrigin: true,
           },
           '/stats': {
-            target: 'http://127.0.0.1:8000',
+            target: 'http://127.0.0.1:8091',
             changeOrigin: true,
           },
           '/register': {
-            target: 'http://127.0.0.1:8000',
+            target: 'http://127.0.0.1:8091',
             changeOrigin: true,
           },
           '/login': {
-            target: 'http://127.0.0.1:8000',
+            target: 'http://127.0.0.1:8091',
             changeOrigin: true,
           },
         },

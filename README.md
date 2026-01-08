@@ -74,6 +74,8 @@ The app manages databases dynamically:
 
 ### ▶️ Running the Application
 
+#### Option 1: Development Mode (Manual)
+
 You need to run both the backend and frontend servers.
 
 **1. Start the Backend Server**
@@ -93,6 +95,47 @@ Open a second terminal and run:
 npm run dev
 ```
 *Open the link shown (typically `http://localhost:3000`) in your browser to start tracking!*
+
+#### Option 2: Using Docker or Podman
+
+For a containerized deployment, you can use either Docker or Podman.
+
+**Using Docker Compose:**
+```bash
+docker-compose up -d
+```
+
+**Using Podman Compose:**
+```bash
+# Install podman-compose if not already installed
+pip install podman-compose
+
+# Run the application
+podman-compose up -d
+```
+
+**Using Podman (without compose):**
+```bash
+# Build and run using the provided script
+# Windows
+.\build-local.ps1
+
+# Mac/Linux
+./build-local.sh
+```
+
+The application will be available at `http://localhost:3000`
+
+To stop the containers:
+```bash
+# Docker
+docker-compose down
+
+# Podman
+podman-compose down
+```
+
+**Note**: All user databases will be persisted in a Docker/Podman volume, ensuring your data is safe across container restarts.
 
 ---
 
